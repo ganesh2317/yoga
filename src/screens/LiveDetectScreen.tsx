@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CameraOff, RefreshCw, Square, Sparkles, Play, BookOpen, ChevronUp, ChevronDown, CheckCircle } from 'lucide-react';
+import { CameraOff, RefreshCw, Square, Sparkles, Play, BookOpen, ChevronUp, ChevronDown, CheckCircle, AlertTriangle } from 'lucide-react';
 import { GlassCard } from '../components/GlassCard';
 import { GlassButton } from '../components/GlassButton';
 import { StatusBadge } from '../components/StatusBadge';
@@ -23,12 +23,12 @@ export const LiveDetectScreen: React.FC = () => {
 
   const pose = YOGA_POSES.find((p) => p.id === poseId) || YOGA_POSES[0];
 
-  const { videoRef, landmarks, fps, cameraState, setCameraState, errorMessage } = usePoseTracking();
+  const { videoRef, landmarks, fps, cameraState, setCameraState, errorMessage, isFullBodyVisible } = usePoseTracking();
 
   const frameScoresRef = useRef<number[]>([]);
   const lastEvalRef = useRef<FrameEvaluation | null>(null);
 
-  const [isReady, setIsReady] = useState<boolean>(false); // "Get Ready" state
+  const [isReady, setIsReady] = useState<boolean>(false);
   const [showInSessionGuide, setShowInSessionGuide] = useState<boolean>(false);
   const [liveScore, setLiveScore] = useState<number>(85);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
@@ -42,7 +42,7 @@ export const LiveDetectScreen: React.FC = () => {
     return () => clearInterval(timer);
   }, [isReady]);
 
-  // Compute live angles & score on landmarks update (only when isReady is true)
+  // Compute live angles & score on landmarks update
   useEffect(() => {
     if (!isReady || !landmarks || landmarks.length < 29) return;
 
@@ -96,17 +96,10 @@ export const LiveDetectScreen: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0C0D10] overflow-hidden flex flex-col justify-between p-4 max-w-md mx-auto z-10">
+    <div className="relative min-h-screen bg-[#0A0E14] overflow-hidden flex flex-col justify-between p-4 max-w-md mx-auto z-10">
       {/* Video Stream + Skeleton Viewport */}
-      <div className="relative w-full h-[62vh] rounded-3xl overflow-hidden border border-white/10 bg-black/70 shadow-glass-glow flex items-center justify-center">
-        {/* 
-          SINGLE MIRROR CONTAINER:
-          Mirrors both the video feed and skeleton canvas overlay together.
-          MediaPipe outputs anatomical landmarks (left_wrist = user's actual left arm).
-          By wrapping both video and canvas in scaleX(-1), anatomical landmarks align
-          perfectly with the selfie-mirrored display stream without needing coordinate
-          or label swaps downstream. DO NOT add another scaleX(-1) or flip elsewhere!
-        */}
+      <div className="relative w-full h-[62vh] rounded-3xl overflow-hidden border border-white/12 bg-black/70 shadow-glass-glow flex items-center justify-center">
+        {/* SINGLE MIRROR CONTAINER */}
         <div className="absolute inset-0 w-full h-full transform -scale-x-100">
           <video
             ref={videoRef}
@@ -122,8 +115,8 @@ export const LiveDetectScreen: React.FC = () => {
 
         {/* Top HUD: FPS & Timer */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-xs text-[#F4F1EC]">
-            <span className="w-2 h-2 rounded-full bg-[#3F6B4F] animate-pulse" />
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/65 backdrop-blur-md border border-white/10 text-xs text-[#F5F7FA]">
+            <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
             <span className="font-mono font-bold">{formatTimer(elapsedSeconds)}</span>
           </div>
 
@@ -131,7 +124,7 @@ export const LiveDetectScreen: React.FC = () => {
             {isReady && (
               <button
                 onClick={() => setShowInSessionGuide(!showInSessionGuide)}
-                className="px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[11px] font-bold text-[#C9A66B] hover:bg-black/80 flex items-center gap-1"
+                className="px-3 py-1.5 rounded-full bg-black/65 backdrop-blur-md border border-white/15 text-[11px] font-bold text-[#F59E0B] hover:bg-black/85 flex items-center gap-1 transition-all"
               >
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>Guide</span>
@@ -139,32 +132,40 @@ export const LiveDetectScreen: React.FC = () => {
               </button>
             )}
 
-            <div className="px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[11px] text-[#A8A29B]">
+            <div className="px-3 py-1.5 rounded-full bg-black/65 backdrop-blur-md border border-white/10 text-[11px] text-[#94A3B8]">
               <span>FPS: {fps}</span>
             </div>
           </div>
         </div>
 
+        {/* Full-Body-in-Frame Guard Warning Badge */}
+        {!isFullBodyVisible && isReady && cameraState === 'active' && (
+          <div className="absolute bottom-4 left-4 right-4 z-20 px-3.5 py-2 rounded-2xl bg-[#F59E0B]/20 border border-[#F59E0B]/50 backdrop-blur-md text-center flex items-center justify-center gap-2 text-xs text-[#FBBF24] font-bold animate-in fade-in duration-200">
+            <AlertTriangle className="w-4 h-4 text-[#F59E0B] shrink-0" />
+            <span>Step back so your full body is visible</span>
+          </div>
+        )}
+
         {/* Collapsible Mid-Session Reference Overlay */}
         {isReady && showInSessionGuide && (
-          <div className="absolute top-16 right-4 left-4 z-30 p-4 rounded-2xl bg-black/85 border border-white/15 backdrop-blur-md space-y-2 animate-in fade-in duration-200">
+          <div className="absolute top-16 right-4 left-4 z-30 p-4 rounded-2xl glass-amber-modal space-y-2 animate-in fade-in duration-200">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 p-1 shrink-0">
-                <PoseReferenceIllustration poseId={pose.id} />
+              <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/15 p-1 shrink-0 flex items-center justify-center">
+                <PoseReferenceIllustration poseId={pose.id} strokeColor="#FBBF24" />
               </div>
               <div>
-                <h4 className="font-serif font-bold text-sm text-[#F4F1EC]">{pose.name}</h4>
-                <p className="text-[11px] text-[#C9A66B] italic">{pose.sanskritName}</p>
+                <h4 className="font-display font-bold text-sm text-[#F5F7FA]">{pose.name}</h4>
+                <p className="text-[11px] text-[#F59E0B] italic">{pose.sanskritName}</p>
               </div>
             </div>
             <div className="space-y-1 pt-1 border-t border-white/10">
-              <span className="text-[10px] font-bold text-[#A8A29B] uppercase tracking-widest block">
+              <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest block">
                 Quick Form Reminders
               </span>
               <ul className="space-y-1">
                 {pose.alignmentCues.map((cue, idx) => (
-                  <li key={idx} className="text-[11px] text-[#F4F1EC] flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#C9A66B] shrink-0" />
+                  <li key={idx} className="text-[11px] text-[#F5F7FA] flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] shrink-0" />
                     <span>{cue}</span>
                   </li>
                 ))}
@@ -175,17 +176,17 @@ export const LiveDetectScreen: React.FC = () => {
 
         {/* Get Ready Step Overlay (Before Tracking Starts) */}
         {!isReady && (
-          <div className="absolute inset-0 z-30 p-6 flex flex-col justify-between bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="absolute inset-0 z-30 p-6 flex flex-col justify-between glass-amber-modal overflow-y-auto">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-[#C9A66B] uppercase tracking-widest block">
+                  <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-widest block">
                     Get Into Position
                   </span>
-                  <h3 className="font-serif font-extrabold text-2xl text-[#F4F1EC]">
+                  <h3 className="font-display font-extrabold text-2xl text-[#F5F7FA]">
                     {pose.name}
                   </h3>
-                  <p className="text-xs text-[#C9A66B] font-medium italic">
+                  <p className="text-xs text-[#F59E0B] font-medium italic">
                     {pose.sanskritName}
                   </p>
                 </div>
@@ -193,19 +194,19 @@ export const LiveDetectScreen: React.FC = () => {
               </div>
 
               {/* Pose Line Art Reference Illustration */}
-              <div className="w-28 h-28 mx-auto rounded-2xl bg-white/[0.04] border border-white/12 p-3 flex items-center justify-center shadow-inner">
-                <PoseReferenceIllustration poseId={pose.id} />
+              <div className="w-28 h-28 mx-auto rounded-2xl bg-white/10 border border-white/15 p-3 flex items-center justify-center shadow-inner">
+                <PoseReferenceIllustration poseId={pose.id} strokeColor="#FBBF24" />
               </div>
 
               {/* Numbered Setup Steps */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold text-[#A8A29B] uppercase tracking-widest">
+                <h4 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
                   Setup Instructions
                 </h4>
                 <ol className="space-y-2">
                   {pose.setupSteps.map((step, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 text-xs text-[#F4F1EC] leading-relaxed">
-                      <span className="w-5 h-5 rounded-full bg-[#3F6B4F]/30 border border-[#3F6B4F]/50 text-[#6EE7B7] font-mono text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    <li key={idx} className="flex items-start gap-2.5 text-xs text-[#F5F7FA] leading-relaxed">
+                      <span className="w-5 h-5 rounded-full bg-[#22C55E]/20 border border-[#22C55E]/50 text-[#34D399] font-mono text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                         {idx + 1}
                       </span>
                       <span>{step}</span>
@@ -216,13 +217,13 @@ export const LiveDetectScreen: React.FC = () => {
 
               {/* Alignment Cues */}
               <div className="space-y-1.5 pt-2 border-t border-white/10">
-                <h4 className="text-xs font-bold text-[#A8A29B] uppercase tracking-widest">
+                <h4 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
                   Key Alignment Cues
                 </h4>
                 <ul className="space-y-1">
                   {pose.alignmentCues.map((cue, idx) => (
-                    <li key={idx} className="text-xs text-[#A8A29B] flex items-center gap-1.5">
-                      <CheckCircle className="w-3.5 h-3.5 text-[#C9A66B] shrink-0" />
+                    <li key={idx} className="text-xs text-[#94A3B8] flex items-center gap-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-[#F59E0B] shrink-0" />
                       <span>{cue}</span>
                     </li>
                   ))}
@@ -246,14 +247,14 @@ export const LiveDetectScreen: React.FC = () => {
         {/* Camera Denied / Fallback Message */}
         {cameraState === 'denied' && (
           <div className="absolute inset-0 z-40 p-6 flex flex-col items-center justify-center text-center bg-black/85 backdrop-blur-md space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#C1502E]/20 border border-[#C1502E]/40 flex items-center justify-center text-[#C1502E]">
+            <div className="w-14 h-14 rounded-2xl bg-[#EF4444]/20 border border-[#EF4444]/40 flex items-center justify-center text-[#EF4444]">
               <CameraOff className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="font-serif font-bold text-lg text-[#F4F1EC]">
+              <h3 className="font-display font-bold text-lg text-[#F5F7FA]">
                 Camera Access Needed
               </h3>
-              <p className="text-xs text-[#A8A29B] mt-1 max-w-xs">
+              <p className="text-xs text-[#94A3B8] mt-1 max-w-xs">
                 {errorMessage || 'Please allow webcam access in browser settings.'}
               </p>
             </div>
@@ -282,26 +283,26 @@ export const LiveDetectScreen: React.FC = () => {
       </div>
 
       {/* Live Bottom Card: Pose Info & Reactive Score */}
-      <GlassCard variant="focal" glowColor={liveScore >= 85 ? 'forest' : liveScore >= 65 ? 'ochre' : 'rust'} className="p-5 mt-4 space-y-4">
+      <GlassCard variant="focal" glowColor={liveScore >= 85 ? 'emerald' : liveScore >= 65 ? 'amber' : 'red'} className="p-5 mt-4 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-[#A8A29B] uppercase tracking-widest block">
+            <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest block">
               Active Pose
             </span>
-            <h2 className="font-serif font-extrabold text-xl text-[#F4F1EC]">
+            <h2 className="font-display font-extrabold text-xl text-[#F5F7FA]">
               {pose.name}
             </h2>
-            <p className="text-xs text-[#C9A66B] font-medium italic">
+            <p className="text-xs text-[#F59E0B] font-medium italic">
               {pose.sanskritName}
             </p>
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="text-[10px] text-[#A8A29B] mb-1 font-bold uppercase tracking-widest">
+            <span className="text-[10px] text-[#94A3B8] mb-1 font-bold uppercase tracking-widest">
               Alignment
             </span>
-            <div className="px-3.5 py-1.5 rounded-2xl bg-white/10 border border-white/20 font-serif font-extrabold text-2xl text-[#F4F1EC] shadow-inner">
-              {liveScore}<span className="text-xs text-[#A8A29B] font-normal">/100</span>
+            <div className="px-3.5 py-1.5 rounded-2xl bg-white/10 border border-white/20 font-display font-extrabold text-2xl text-[#34D399] shadow-inner">
+              {liveScore}<span className="text-xs text-[#94A3B8] font-normal">/100</span>
             </div>
           </div>
         </div>

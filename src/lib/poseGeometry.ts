@@ -1,14 +1,32 @@
 import type { ComputedJointAngles, JointLandmark } from '../types';
 
 /**
+ * Checks if landmark is visible with at least 0.6 confidence.
+ */
+
+function isLandmarkVisible(p?: JointLandmark, threshold = 0.6): boolean {
+  if (!p) return false;
+  if (p.visibility === undefined || p.visibility === null) return true;
+  return p.visibility >= threshold;
+}
+
+/**
  * Calculates 3D/2D interior angle at joint p2 formed by (p1 -> p2 -> p3) in degrees.
+ * Returns undefined if any required landmark falls below visibility threshold.
  */
 export function calculateJointAngle(
   p1: JointLandmark,
   p2: JointLandmark,
-  p3: JointLandmark
-): number {
-  if (!p1 || !p2 || !p3) return 180;
+  p3: JointLandmark,
+  minVisibility = 0.6
+): number | undefined {
+  if (
+    !isLandmarkVisible(p1, minVisibility) ||
+    !isLandmarkVisible(p2, minVisibility) ||
+    !isLandmarkVisible(p3, minVisibility)
+  ) {
+    return undefined;
+  }
 
   // Vector A = p1 - p2
   const ax = p1.x - p2.x;
@@ -27,7 +45,6 @@ export function calculateJointAngle(
   if (magA * magB === 0) return 180;
 
   let cosTheta = dotProduct / (magA * magB);
-  // Clamp cosTheta to [-1, 1] to prevent NaN due to floating point precision
   cosTheta = Math.max(-1, Math.min(1, cosTheta));
 
   const angleRad = Math.acos(cosTheta);
@@ -36,15 +53,23 @@ export function calculateJointAngle(
 
 /**
  * Calculates spine tilt angle relative to pure vertical axis.
- * 180 degrees = perfectly upright / straight spine.
+ * Returns undefined if shoulder or hip landmarks fall below visibility threshold.
  */
 export function calculateSpineTilt(
   leftShoulder: JointLandmark,
   rightShoulder: JointLandmark,
   leftHip: JointLandmark,
-  rightHip: JointLandmark
-): number {
-  if (!leftShoulder || !rightShoulder || !leftHip || !rightHip) return 180;
+  rightHip: JointLandmark,
+  minVisibility = 0.6
+): number | undefined {
+  if (
+    !isLandmarkVisible(leftShoulder, minVisibility) ||
+    !isLandmarkVisible(rightShoulder, minVisibility) ||
+    !isLandmarkVisible(leftHip, minVisibility) ||
+    !isLandmarkVisible(rightHip, minVisibility)
+  ) {
+    return undefined;
+  }
 
   const midShoulderX = (leftShoulder.x + rightShoulder.x) / 2;
   const midShoulderY = (leftShoulder.y + rightShoulder.y) / 2;
@@ -52,15 +77,13 @@ export function calculateSpineTilt(
   const midHipX = (leftHip.x + rightHip.x) / 2;
   const midHipY = (leftHip.y + rightHip.y) / 2;
 
-  // Spine vector from hip up to shoulder
   const dx = midShoulderX - midHipX;
-  const dy = midShoulderY - midHipY; // in canvas Y points downward
+  const dy = midShoulderY - midHipY;
 
-  // Angle with negative Y axis (straight up = -1 in canvas space)
   const len = Math.sqrt(dx * dx + dy * dy);
   if (len === 0) return 180;
 
-  const cosTheta = (-dy) / len; // -dy because Y increases downwards
+  const cosTheta = -dy / len;
   const clampedCos = Math.max(-1, Math.min(1, cosTheta));
   const tiltFromUpright = (Math.acos(clampedCos) * 180) / Math.PI;
 
@@ -69,19 +92,12 @@ export function calculateSpineTilt(
 
 /**
  * Extracts key joint angles from standard MediaPipe 33-point pose landmark array.
+ * Applies per-landmark visibility gating (min 0.6 threshold).
  */
 export function computeAnglesFromLandmarks(landmarks: JointLandmark[]): ComputedJointAngles {
   if (!landmarks || landmarks.length < 29) {
     return {};
   }
-
-  // MediaPipe Landmark Index Mapping:
-  // 11: left_shoulder, 12: right_shoulder
-  // 13: left_elbow, 14: right_elbow
-  // 15: left_wrist, 16: right_wrist
-  // 23: left_hip, 24: right_hip
-  // 25: left_knee, 26: right_knee
-  // 27: left_ankle, 28: right_ankle
 
   const leftShoulder = landmarks[11];
   const rightShoulder = landmarks[12];
@@ -97,14 +113,14 @@ export function computeAnglesFromLandmarks(landmarks: JointLandmark[]): Computed
   const rightAnkle = landmarks[28];
 
   return {
-    leftKnee: calculateJointAngle(leftHip, leftKnee, leftAnkle),
-    rightKnee: calculateJointAngle(rightHip, rightKnee, rightAnkle),
-    leftElbow: calculateJointAngle(leftShoulder, leftElbow, leftWrist),
-    rightElbow: calculateJointAngle(rightShoulder, rightElbow, rightWrist),
-    leftShoulder: calculateJointAngle(leftHip, leftShoulder, leftElbow),
-    rightShoulder: calculateJointAngle(rightHip, rightShoulder, rightElbow),
-    leftHip: calculateJointAngle(leftShoulder, leftHip, leftKnee),
-    rightHip: calculateJointAngle(rightShoulder, rightHip, rightKnee),
-    spineTilt: calculateSpineTilt(leftShoulder, rightShoulder, leftHip, rightHip),
+    leftKnee: calculateJointAngle(leftHip, leftKnee, leftAnkle, 0.6),
+    rightKnee: calculateJointAngle(rightHip, rightKnee, rightAnkle, 0.6),
+    leftElbow: calculateJointAngle(leftShoulder, leftElbow, leftWrist, 0.6),
+    rightElbow: calculateJointAngle(rightShoulder, rightElbow, rightWrist, 0.6),
+    leftShoulder: calculateJointAngle(leftHip, leftShoulder, leftElbow, 0.6),
+    rightShoulder: calculateJointAngle(rightHip, rightShoulder, rightElbow, 0.6),
+    leftHip: calculateJointAngle(leftShoulder, leftHip, leftKnee, 0.6),
+    rightHip: calculateJointAngle(rightShoulder, rightHip, rightKnee, 0.6),
+    spineTilt: calculateSpineTilt(leftShoulder, rightShoulder, leftHip, rightHip, 0.6),
   };
 }

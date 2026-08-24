@@ -25,9 +25,9 @@ export function evaluateSingleJoint(
       actualAngle: 0,
       targetAngle,
       tolerance,
-      deviation: 90,
-      score: 50,
-      status: 'Slight',
+      deviation: 0,
+      score: 85, // Neutral score for occluded/non-visible joint
+      status: 'Good',
     };
   }
 
@@ -61,6 +61,7 @@ export function evaluateSingleJoint(
 
 /**
  * Evaluates current frame joint angles against reference target pose.
+ * Only includes visible joints in overall score calculation to prevent occlusion distortion.
  */
 export function evaluatePoseFrame(
   computedAngles: ComputedJointAngles,
@@ -68,6 +69,7 @@ export function evaluatePoseFrame(
 ): FrameEvaluation {
   const jointEvaluations: Record<string, JointEvaluation> = {};
   const ideal = pose.idealJointAngles;
+
   let totalScore = 0;
   let evaluatedCount = 0;
 
@@ -95,12 +97,16 @@ export function evaluatePoseFrame(
         targetConfig.tolerance
       );
       jointEvaluations[key] = evalResult;
-      totalScore += evalResult.score;
-      evaluatedCount++;
+
+      // Only factor in joints that were reliably detected & visible
+      if (actual !== undefined && !Number.isNaN(actual)) {
+        totalScore += evalResult.score;
+        evaluatedCount++;
+      }
     }
   });
 
-  const overall = evaluatedCount > 0 ? Math.round(totalScore / evaluatedCount) : 80;
+  const overall = evaluatedCount > 0 ? Math.round(totalScore / evaluatedCount) : 85;
 
   // Category breakdown roll-up
   const getSubScore = (keys: string[]): number => {
