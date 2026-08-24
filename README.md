@@ -1,32 +1,39 @@
-# YogaSense AI — Master Build (Round 3 Refined)
+# YogaSense AI — Master Build (Round 4 Refined)
 
-**YogaSense AI** is a client-side AI-driven posture assistant and guided yoga practice application. Built with React 18, TypeScript, Vite, Tailwind CSS, MediaPipe, and Fraunces serif typography, it provides real-time body tracking, posture scoring, auto pose recognition, and detailed posture reference guides.
+**YogaSense AI** is a client-side AI-driven posture assistant and guided yoga practice application. Built with React 18, TypeScript, Vite, Tailwind CSS, MediaPipe PoseLandmarker, and Manrope/Inter typography, it provides real-time body tracking, posture scoring, auto pose recognition, and detailed posture reference guides.
 
 ---
 
 ## 🌟 Key Features & Refinement Rounds
 
-- **Pose Reference Guide & Setup Steps (Round 3)**:
-  - Sequential 3–5 step instructions (`setupSteps`) and key form cues (`alignmentCues`) for all 8 reference poses.
-  - Parameterized SVG line-art pose illustrations (`PoseReferenceIllustration.tsx`) showing exact target body shapes.
-  - Pre-tracking "Get Ready" screen on `/live/:poseId` allowing users to study position before scoring starts.
-  - Collapsible mid-session pose reference panel and horizontally-scrollable reference drawer in Free Practice mode (`/live`).
+- **Hardened Tracking Pipeline (Round 4)**:
+  - Upgraded MediaPipe engine to high-precision `pose_landmarker_heavy.task` running on GPU with 0.65 confidence thresholds.
+  - Per-landmark visibility gating (threshold >= 0.6): occluded or low-confidence keypoints are excluded from joint angle calculation to prevent hallucinated scores.
+  - Exponential Moving Average (EMA) temporal smoothing (`alpha = 0.45`) across consecutive frames eliminates skeleton twitching/jitter.
+  - Full-Body-in-Frame Guard: detects lower-body landmark visibility and displays an on-screen prompt (*"Step back so your full body is visible"*) when user is too close to camera.
+  - Rolling window hysteresis (12-frame window) on auto-match detector prevents label flickering between candidate poses.
 
-- **Boutique Editorial Design Overhaul (Round 3)**:
-  - **Typography**: Paired variable serif **Fraunces** (`@fontsource/fraunces`) for large numbers, hero titles, score numbers, and greetings with **Inter** for data UI.
-  - **Color Palette**: Neutral graphite-black base (`#0C0D10`), warm off-white glass fill (`rgba(244,241,236,0.05)`), deep muted forest green (`#3F6B4F`), warm ochre/gold (`#C9A66B`), and warm rust/terracotta (`#C1502E`).
-  - **Depth & Texture**: Fine static film-grain overlay (`.bg-grain`) and 1px specular top edge highlights (`::before`).
+- **20 Reference Asanas (Round 4)**:
+  - Expanded pose library to 20 total poses with complete setup steps, alignment cues, anatomical target angles, and custom SVG line-art figures:
+    *Standing*: Mountain (Tadasana), Triangle (Trikonasana), Warrior I (Virabhadrasana I), Chair (Utkatasana), Low Lunge (Anjaneyasana)
+    *Seated*: Lotus (Padmasana), Child's Pose (Balasana), Cat-Cow (Marjaryasana-Bitilasana), Boat (Navasana), Seated Forward Bend (Paschimottanasana)
+    *Backbend*: Cobra (Bhujangasana), Bridge (Setu Bandhasana), Camel (Ustrasana), Bow (Dhanurasana)
+    *Inversion*: Downward Dog (Adho Mukha Svanasana)
+    *Balance*: Tree (Vrikshasana), Eagle (Garudasana), Dancer (Natarajasana), Half Moon (Ardha Chandrasana)
+    *Twist*: Half Spinal Twist (Ardha Matsyendrasana)
+
+- **Reference Color Palette & Amber Liquid Glass Material (Round 4)**:
+  - **Base Background**: Deep charcoal-navy near-black (`#0A0E14` base, `#0F1620` surface).
+  - **Card Surface**: Dark charcoal fill `#151B24` (90% opacity), `rgba(255,255,255,0.08)` border, `backdrop-filter: blur(20px)`.
+  - **Primary Accent**: Bright emerald green (`#22C55E` → `#34D399` gradient) for CTAs, active bottom-nav, progress arcs, and skeleton dots.
+  - **Amber Liquid-Glass Material**: Warm gold specular mount sweep (`@keyframes liquidSweep`), amber-tinted frosted overlay blur (`.glass-amber-modal`), traveling ring arc glint, and amber icon tap glow (`#F59E0B`).
+  - **Typography**: Clean modern sans pairing of **Manrope** (headings, numbers, scores) + **Inter** (body & UI).
+
+- **Pose Reference Guide & Setup Steps (Round 3)**:
+  - Pre-tracking "Get Ready" overlay on `/live/:poseId` and collapsible mid-session reference guide.
 
 - **Free Practice & Auto Pose Recognition (`/live`) (Round 2)**:
   - Real-time pose recognition engine continuously scores joint angles against reference poses and prompts the user when a pose is held for ~1.5s.
-
-- **Single-Source Mirror Container (Round 2)**:
-  - Mirroring wrapper `<div className="transform -scale-x-100">` flips both camera stream and SVG/canvas overlay together, keeping anatomical left/right wrist/knee landmarks aligned.
-
-- **Real-Time CV Engine & Posture Analysis (Round 1)**:
-  - `@mediapipe/tasks-vision` PoseLandmarker (33 keypoints) running locally via GPU/WASM.
-  - Vector trigonometry joint angle calculation (`poseGeometry.ts`) and tolerance scoring (`scoreEngine.ts`).
-  - Web Speech API Text-to-Speech audio reader (`feedbackEngine.ts`).
 
 ---
 
@@ -34,15 +41,15 @@
 
 | Element | Token | Usage |
 | :--- | :--- | :--- |
-| **Base Background** | `#0C0D10` | Neutral graphite-black (no blue tint) |
-| **Glass Surface** | `rgba(244,241,236,0.05)` | Warm off-white liquid glass surface |
-| **Glass Border** | `rgba(244,241,236,0.10)` | Subtle warm glass border |
-| **Primary Accent** | `#3F6B4F` | Deep muted forest/moss green |
-| **Secondary Accent**| `#C9A66B` | Warm ochre/gold highlight & active state |
-| **Alert/Tertiary** | `#C1502E` | Warm rust/terracotta for corrections |
-| **Text Primary** | `#F4F1EC` | Warm off-white |
-| **Display Font** | `Fraunces` | Variable serif for scores, titles & greetings |
-| **Body Font** | `Inter` | Sans-serif for labels & data density |
+| **Base Background** | `#0A0E14` | Deep charcoal-navy near-black |
+| **Surface Layer** | `#0F1620` | Screen & panel background |
+| **Card Fill** | `#151B24` | Dark charcoal card surface (~90% opacity) |
+| **Primary Accent** | `#22C55E` → `#34D399` | Bright emerald green primary CTAs & active tabs |
+| **Amber Material** | `#F59E0B` | Liquid-glass sheen, warning bars, "Slight" status |
+| **Error/Poor** | `#EF4444` | Red alert status |
+| **Text Primary** | `#F5F7FA` | Clean off-white primary |
+| **Headings Font** | `Manrope` | Modern sans for scores, numbers & headings |
+| **Body Font** | `Inter` | Sans-serif for body & data density |
 
 ---
 
@@ -56,7 +63,7 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173` in your web browser.
+Visit `http://localhost:5173` or `http://localhost:5175` in your web browser.
 
 ---
 
@@ -64,7 +71,7 @@ Visit `http://localhost:5173` in your web browser.
 
 ```
 src/
-├── components/          # Reusable Liquid Glass & SVG UI components
+├── components/          # Liquid Glass & SVG UI components
 │   ├── AnimatedNumber.tsx
 │   ├── BackgroundBlobs.tsx
 │   ├── BodySkeletonDiagram.tsx
@@ -72,26 +79,26 @@ src/
 │   ├── CircularProgressRing.tsx
 │   ├── GlassButton.tsx
 │   ├── GlassCard.tsx
-│   ├── PoseReferenceIllustration.tsx # Custom line-art SVG silhouettes
+│   ├── PoseReferenceIllustration.tsx # Custom line-art SVG silhouettes for 20 poses
 │   ├── ProtectedRoute.tsx
 │   ├── SkeletonOverlayCanvas.tsx
 │   ├── StatusBadge.tsx
 │   └── TopBar.tsx
 ├── data/
-│   └── poses.ts         # 8 reference poses with target angles, setupSteps & alignmentCues
+│   └── poses.ts         # 20 reference poses with target angles, setupSteps & alignmentCues
 ├── hooks/
-│   └── usePoseTracking.ts # Shared camera & MediaPipe tracking hook
+│   └── usePoseTracking.ts # Camera, PoseLandmarker heavy, EMA smoothing & full-body guard
 ├── lib/
 │   ├── feedbackEngine.ts # Plain-English tip generation rules
-│   ├── mediaPipeLoader.ts # WASM PoseLandmarker loader
-│   ├── poseGeometry.ts   # Vector trigonometry joint angle calculation
+│   ├── mediaPipeLoader.ts # Heavy/Full GPU PoseLandmarker loader
+│   ├── poseGeometry.ts   # Vector trigonometry & 0.6 visibility gating
 │   └── scoreEngine.ts    # Posture scoring decay engine
 ├── screens/
 │   ├── FeedbackScreen.tsx
-│   ├── FreeTrackScreen.tsx # Free practice & auto pose recognition screen
+│   ├── FreeTrackScreen.tsx # Free practice & auto pose recognition (rolling hysteresis)
 │   ├── HistoryScreen.tsx
 │   ├── HomeScreen.tsx
-│   ├── LibraryScreen.tsx
+│   ├── LibraryScreen.tsx # 20 poses with category chips (Standing, Seated, Backbend, etc.)
 │   ├── LiveDetectScreen.tsx # Target pose scored session screen
 │   ├── LoginScreen.tsx
 │   ├── ProfileScreen.tsx
@@ -99,7 +106,7 @@ src/
 │   ├── RegisterScreen.tsx
 │   └── ScoreScreen.tsx
 ├── services/
-│   ├── authService.ts   # Client-side WebCrypto auth
+│   ├── authService.ts
 │   └── db.ts            # IndexedDB operations (idb)
 ├── store/
 │   ├── useAuthStore.ts
