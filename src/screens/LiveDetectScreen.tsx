@@ -6,13 +6,13 @@ import { GlassButton } from '../components/GlassButton';
 import { StatusBadge } from '../components/StatusBadge';
 import { SkeletonOverlayCanvas } from '../components/SkeletonOverlayCanvas';
 import { YOGA_POSES } from '../data/poses';
+import { usePoseTracking } from '../hooks/usePoseTracking';
 import { computeAnglesFromLandmarks } from '../lib/poseGeometry';
 import { evaluatePoseFrame } from '../lib/scoreEngine';
 import { generatePersonalizedFeedback } from '../lib/feedbackEngine';
-import { getPoseLandmarker } from '../lib/mediaPipeLoader';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSessionStore } from '../store/useSessionStore';
-import type { FrameEvaluation, JointLandmark, SessionSummary } from '../types';
+import type { FrameEvaluation, SessionSummary } from '../types';
 
 export const LiveDetectScreen: React.FC = () => {
   const { poseId } = useParams<{ poseId: string }>();
@@ -22,20 +22,15 @@ export const LiveDetectScreen: React.FC = () => {
 
   const pose = YOGA_POSES.find((p) => p.id === poseId) || YOGA_POSES[0];
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const animFrameRef = useRef<number | null>(null);
-  const lastTimeRef = useRef<number>(performance.now());
+  const { videoRef, landmarks, fps, cameraState, setCameraState, errorMessage } = usePoseTracking();
+
   const frameScoresRef = useRef<number[]>([]);
   const lastEvalRef = useRef<FrameEvaluation | null>(null);
 
-  const [landmarks, setLandmarks] = useState<JointLandmark[] | null>(null);
-  const [fps, setFps] = useState<number>(0);
   const [liveScore, setLiveScore] = useState<number>(85);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  const [cameraState, setCameraState] = useState<'loading' | 'active' | 'denied' | 'simulated'>('loading');
-  const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // Start Session Timer
+  // Session timer
   useEffect(() => {
     const timer = setInterval(() => {
       setElapsedSeconds((prev) => prev + 1);
@@ -43,128 +38,16 @@ export const LiveDetectScreen: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Initialize Webcam & MediaPipe
+  // Compute live angles & score on landmarks update
   useEffect(() => {
-    let isSubscribed = true;
+    if (!landmarks || landmarks.length < 29) return;
 
-    async function initPipeline() {
-      try {
-        setCameraState('loading');
-        setErrorMessage('');
-
-        const landmarker = await getPoseLandmarker();
-
-        // Request webcam access
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-          audio: false,
-        });
-
-        if (!isSubscribed) return;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-          setCameraState('active');
-
-          // Frame processing loop
-          const processFrame = () => {
-            const now = performance.now();
-            const delta = now - lastTimeRef.current;
-            lastTimeRef.current = now;
-
-            if (delta > 0) {
-              setFps(Math.round(1000 / delta));
-            }
-
-            if (videoRef.current && videoRef.current.readyState >= 2 && landmarker) {
-              try {
-                const results = landmarker.detectForVideo(videoRef.current, now);
-                if (results.landmarks && results.landmarks.length > 0) {
-                  const rawLm = results.landmarks[0];
-                  setLandmarks(rawLm);
-
-                  // Compute angles & evaluate pose
-                  const angles = computeAnglesFromLandmarks(rawLm);
-                  const evalRes = evaluatePoseFrame(angles, pose);
-                  lastEvalRef.current = evalRes;
-                  setLiveScore(evalRes.score);
-                  frameScoresRef.current.push(evalRes.score);
-                }
-              } catch (e) {
-                // Ignore transient frame errors
-              }
-            }
-
-            animFrameRef.current = requestAnimationFrame(processFrame);
-          };
-
-          animFrameRef.current = requestAnimationFrame(processFrame);
-        }
-      } catch (err: any) {
-        console.warn('Webcam permission denied or unavailable, switching to simulator mode:', err);
-        if (isSubscribed) {
-          setCameraState('denied');
-          setErrorMessage(err.message || 'Camera access was denied or not found.');
-        }
-      }
-    }
-
-    initPipeline();
-
-    return () => {
-      isSubscribed = false;
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach((t) => t.stop());
-      }
-    };
-  }, [pose]);
-
-  // Fallback simulator loop if camera is denied/unavailable
-  useEffect(() => {
-    if (cameraState !== 'simulated' && cameraState !== 'denied') return;
-
-    let simTick = 0;
-    const interval = setInterval(() => {
-      simTick += 0.1;
-      // Generate synthetic landmarks for standing pose
-      const simLandmarks: JointLandmark[] = Array.from({ length: 33 }, (_, i) => ({
-        x: 0.5 + Math.sin(simTick + i) * 0.02,
-        y: 0.2 + (i / 33) * 0.7,
-        z: 0,
-        visibility: 0.9,
-      }));
-
-      // Key joints simulation
-      simLandmarks[11] = { x: 0.4, y: 0.3, z: 0, visibility: 0.95 }; // left shoulder
-      simLandmarks[12] = { x: 0.6, y: 0.3, z: 0, visibility: 0.95 }; // right shoulder
-      simLandmarks[13] = { x: 0.3, y: 0.45, z: 0, visibility: 0.95 }; // left elbow
-      simLandmarks[14] = { x: 0.7, y: 0.45, z: 0, visibility: 0.95 }; // right elbow
-      simLandmarks[15] = { x: 0.25, y: 0.6, z: 0, visibility: 0.95 }; // left wrist
-      simLandmarks[16] = { x: 0.75, y: 0.6, z: 0, visibility: 0.95 }; // right wrist
-      simLandmarks[23] = { x: 0.43, y: 0.55, z: 0, visibility: 0.95 }; // left hip
-      simLandmarks[24] = { x: 0.57, y: 0.55, z: 0, visibility: 0.95 }; // right hip
-      simLandmarks[25] = { x: 0.44, y: 0.75, z: 0, visibility: 0.95 }; // left knee
-      simLandmarks[26] = { x: 0.56, y: 0.75, z: 0, visibility: 0.95 }; // right knee
-      simLandmarks[27] = { x: 0.45, y: 0.92, z: 0, visibility: 0.95 }; // left ankle
-      simLandmarks[28] = { x: 0.55, y: 0.92, z: 0, visibility: 0.95 }; // right ankle
-
-      setLandmarks(simLandmarks);
-      setFps(30);
-
-      const angles = computeAnglesFromLandmarks(simLandmarks);
-      const evalRes = evaluatePoseFrame(angles, pose);
-      lastEvalRef.current = evalRes;
-      setLiveScore(evalRes.score);
-      frameScoresRef.current.push(evalRes.score);
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [cameraState, pose]);
+    const angles = computeAnglesFromLandmarks(landmarks);
+    const evalRes = evaluatePoseFrame(angles, pose);
+    lastEvalRef.current = evalRes;
+    setLiveScore(evalRes.score);
+    frameScoresRef.current.push(evalRes.score);
+  }, [landmarks, pose]);
 
   // Stop session & persist to IndexedDB
   const handleStopSession = async () => {
@@ -230,14 +113,13 @@ export const LiveDetectScreen: React.FC = () => {
             }`}
           />
 
-          {/* Skeleton Canvas Overlay */}
           <SkeletonOverlayCanvas landmarks={landmarks} width={380} height={520} />
         </div>
 
         {/* Top HUD: FPS & Timer */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-xs text-text-primary">
-            <span className="w-2 h-2 rounded-full bg-accent-green animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-accent-sage animate-pulse" />
             <span className="font-mono font-bold">{formatTimer(elapsedSeconds)}</span>
           </div>
 
@@ -250,7 +132,7 @@ export const LiveDetectScreen: React.FC = () => {
         {/* Camera Denied / Fallback Message */}
         {cameraState === 'denied' && (
           <div className="absolute inset-0 z-30 p-6 flex flex-col items-center justify-center text-center bg-black/80 backdrop-blur-md space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-status-slight/20 border border-status-slight/40 flex items-center justify-center text-amber-400">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
               <CameraOff className="w-7 h-7" />
             </div>
             <div>
@@ -278,7 +160,7 @@ export const LiveDetectScreen: React.FC = () => {
                 size="sm"
                 leftIcon={<Sparkles className="w-4 h-4" />}
               >
-                Enable Interactive Simulator Mode
+                Enable Simulator Mode
               </GlassButton>
             </div>
           </div>
@@ -286,10 +168,10 @@ export const LiveDetectScreen: React.FC = () => {
       </div>
 
       {/* Live Bottom Card: Pose Info & Reactive Score */}
-      <GlassCard variant="glow" glowColor={liveScore >= 85 ? 'green' : liveScore >= 65 ? 'amber' : 'red'} className="p-5 mt-4 space-y-4">
+      <GlassCard variant="glow" glowColor={liveScore >= 85 ? 'sage' : liveScore >= 65 ? 'amber' : 'red'} className="p-5 mt-4 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider block">
               Current Pose
             </span>
             <h2 className="font-display font-extrabold text-xl text-text-primary">
@@ -300,10 +182,9 @@ export const LiveDetectScreen: React.FC = () => {
             </p>
           </div>
 
-          {/* Live Reactive Score Ring */}
           <div className="flex flex-col items-center">
-            <span className="text-[10px] text-text-tertiary mb-1 font-semibold uppercase">
-              Alignment Score
+            <span className="text-[10px] text-text-tertiary mb-1 font-bold uppercase tracking-widest">
+              Alignment
             </span>
             <div className="px-3.5 py-1.5 rounded-2xl bg-white/10 border border-white/20 font-display font-extrabold text-2xl text-accent-mint shadow-inner">
               {liveScore}<span className="text-xs text-text-tertiary font-normal">/100</span>

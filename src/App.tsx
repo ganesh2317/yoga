@@ -7,6 +7,7 @@ import { LoginScreen } from './screens/LoginScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { LibraryScreen } from './screens/LibraryScreen';
+import { FreeTrackScreen } from './screens/FreeTrackScreen';
 import { LiveDetectScreen } from './screens/LiveDetectScreen';
 import { ScoreScreen } from './screens/ScoreScreen';
 import { FeedbackScreen } from './screens/FeedbackScreen';
@@ -16,9 +17,9 @@ import { ProfileScreen } from './screens/ProfileScreen';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
-  // Hide bottom nav on login/register and live video screen
   const hideBottomNav =
     ['/login', '/register'].includes(location.pathname) ||
+    location.pathname === '/live' ||
     location.pathname.startsWith('/live/');
 
   return (
@@ -33,7 +34,6 @@ export function App() {
   return (
     <BrowserRouter>
       <div className="relative min-h-screen font-sans bg-bg-darkest text-text-primary overflow-x-hidden">
-        {/* iOS 26 Liquid Glass Background Blobs */}
         <BackgroundBlobs />
 
         <MainLayout>
@@ -55,6 +55,15 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <LibraryScreen />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/live"
+              element={
+                <ProtectedRoute>
+                  <FreeTrackScreen />
                 </ProtectedRoute>
               }
             />
