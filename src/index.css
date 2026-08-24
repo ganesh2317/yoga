@@ -1,9 +1,10 @@
 @import "@fontsource/inter/400.css";
 @import "@fontsource/inter/500.css";
 @import "@fontsource/inter/600.css";
-@import "@fontsource/manrope/600.css";
-@import "@fontsource/manrope/700.css";
-@import "@fontsource/manrope/800.css";
+@import "@fontsource/fraunces/400.css";
+@import "@fontsource/fraunces/600.css";
+@import "@fontsource/fraunces/700.css";
+@import "@fontsource/fraunces/800.css";
 
 @tailwind base;
 @tailwind components;
@@ -11,23 +12,23 @@
 
 @layer base {
   body {
-    @apply bg-bg-darkest text-text-primary font-sans antialiased min-h-screen overflow-x-hidden selection:bg-accent-sage/30 selection:text-accent-mint;
-    background-color: #090D12;
+    @apply bg-bg-darkest text-text-primary font-sans antialiased min-h-screen overflow-x-hidden selection:bg-accent-forest/40 selection:text-accent-gold;
+    background-color: #0C0D10;
   }
 }
 
-/* Subtle organic noise/grain background overlay */
+/* Static fine film-grain overlay */
 .bg-grain {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.025'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.028'/%3E%3C/svg%3E");
 }
 
-/* Crafted Liquid Glass Surfaces with Specular Edge Highlight */
+/* Warm Off-White Liquid Glass Surfaces with Specular Edge Highlight */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.38);
+  background: rgba(244, 241, 236, 0.045);
+  border: 1px solid rgba(244, 241, 236, 0.09);
+  backdrop-filter: blur(24px) saturate(130%);
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.45);
   position: relative;
 }
 
@@ -38,16 +39,16 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.18) 40%, rgba(255, 255, 255, 0.04) 100%);
+  background: linear-gradient(90deg, rgba(244, 241, 236, 0) 0%, rgba(244, 241, 236, 0.18) 45%, rgba(244, 241, 236, 0.03) 100%);
   pointer-events: none;
 }
 
 .glass-panel-focal {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  box-shadow: 0 16px 44px 0 rgba(0, 0, 0, 0.45);
+  background: rgba(244, 241, 236, 0.065);
+  border: 1px solid rgba(244, 241, 236, 0.13);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.55);
   position: relative;
 }
 
@@ -58,7 +59,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.28) 50%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(90deg, rgba(244, 241, 236, 0) 0%, rgba(244, 241, 236, 0.25) 50%, rgba(244, 241, 236, 0) 100%);
   pointer-events: none;
 }
 
@@ -69,14 +70,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(9, 13, 18, 0.6);
+  background: rgba(12, 13, 16, 0.8);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(244, 241, 236, 0.12);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.4);
+  background: rgba(201, 166, 107, 0.4);
 }

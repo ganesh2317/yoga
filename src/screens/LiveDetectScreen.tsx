@@ -282,7 +282,7 @@ export const LiveDetectScreen: React.FC = () => {
       </div>
 
       {/* Live Bottom Card: Pose Info & Reactive Score */}
-      <GlassCard variant="focal" glowColor={liveScore >= 85 ? 'sage' : liveScore >= 65 ? 'amber' : 'red'} className="p-5 mt-4 space-y-4">
+      <GlassCard variant="focal" glowColor={liveScore >= 85 ? 'forest' : liveScore >= 65 ? 'ochre' : 'rust'} className="p-5 mt-4 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-[#A8A29B] uppercase tracking-widest block">

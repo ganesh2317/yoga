@@ -33,15 +33,15 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-gradient-to-r from-emerald-500 to-teal-400 text-bg-darkest font-extrabold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/35 hover:brightness-105 active:scale-95 border border-emerald-300/40',
+      'bg-[#3F6B4F] text-[#F4F1EC] font-bold shadow-lg shadow-[#3F6B4F]/25 hover:bg-[#528364] active:scale-95 border border-[#88C49D]/30',
     secondary:
-      'bg-white/10 text-text-primary border border-white/18 backdrop-blur-xl hover:bg-white/15 hover:border-white/25 active:scale-95 shadow-glass-subtle',
+      'bg-[#F4F1EC]/10 text-[#F4F1EC] border border-[#F4F1EC]/18 backdrop-blur-xl hover:bg-[#F4F1EC]/15 hover:border-[#F4F1EC]/25 active:scale-95 shadow-glass-subtle',
     warm:
-      'bg-gradient-to-r from-amber-500 to-orange-400 text-bg-darkest font-extrabold shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:brightness-105 active:scale-95 border border-amber-300/40',
+      'bg-[#C9A66B] text-[#0C0D10] font-extrabold shadow-lg shadow-[#C9A66B]/25 hover:bg-[#E2C389] active:scale-95 border border-[#E2C389]/40',
     ghost:
-      'bg-transparent text-text-secondary hover:text-text-primary hover:bg-white/5 active:scale-95 border border-transparent',
+      'bg-transparent text-[#A8A29B] hover:text-[#F4F1EC] hover:bg-[#F4F1EC]/5 active:scale-95 border border-transparent',
     danger:
-      'bg-status-poor/20 text-rose-200 border border-status-poor/40 hover:bg-status-poor/30 active:scale-95 shadow-red-glow',
+      'bg-[#C1502E]/20 text-[#F4F1EC] border border-[#C1502E]/40 hover:bg-[#C1502E]/30 active:scale-95 shadow-rust-glow',
   }[variant];
 
   return (
@@ -79,9 +79,9 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
         </svg>
       ) : (
         <>
-          {leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
+          {leftIcon && <span className="inline-flex shrink-0 opacity-80">{leftIcon}</span>}
           <span>{children}</span>
-          {rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}
+          {rightIcon && <span className="inline-flex shrink-0 opacity-80">{rightIcon}</span>}
         </>
       )}
     </motion.button>

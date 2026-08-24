@@ -83,6 +83,12 @@ export async function getUserSessions(userId: string): Promise<SessionSummary[]>
   return sessions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
+export async function getAllSessions(): Promise<SessionSummary[]> {
+  const db = await getDB();
+  const sessions = await db.getAll('sessions');
+  return sessions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
+
 export async function getSessionById(sessionId: string): Promise<SessionSummary | undefined> {
   const db = await getDB();
   return db.get('sessions', sessionId);

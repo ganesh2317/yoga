@@ -8,7 +8,7 @@ interface CircularProgressRingProps {
   strokeWidth?: number;
   label?: string;
   sublabel?: string;
-  colorScheme?: 'sage' | 'emerald' | 'amber' | 'red';
+  colorScheme?: 'forest' | 'ochre' | 'rust';
   children?: React.ReactNode;
 }
 
@@ -19,7 +19,7 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
   strokeWidth = 10,
   label,
   sublabel,
-  colorScheme = 'sage',
+  colorScheme = 'forest',
   children,
 }) => {
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
@@ -28,10 +28,9 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   const colors = {
-    sage: { stroke: '#10B981', glow: 'rgba(16, 185, 129, 0.28)', text: 'text-accent-mint' },
-    emerald: { stroke: '#34D399', glow: 'rgba(52, 211, 153, 0.28)', text: 'text-accent-emerald' },
-    amber: { stroke: '#F59E0B', glow: 'rgba(245, 158, 11, 0.28)', text: 'text-accent-warm' },
-    red: { stroke: '#F43F5E', glow: 'rgba(244, 63, 94, 0.28)', text: 'text-rose-400' },
+    forest: { stroke: '#3F6B4F', glow: 'rgba(63, 107, 79, 0.28)', text: 'text-[#88C49D]' },
+    ochre: { stroke: '#C9A66B', glow: 'rgba(201, 166, 107, 0.28)', text: 'text-[#C9A66B]' },
+    rust: { stroke: '#C1502E', glow: 'rgba(193, 80, 46, 0.28)', text: 'text-[#C1502E]' },
   }[colorScheme];
 
   return (
@@ -52,7 +51,7 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255, 255, 255, 0.07)"
+          stroke="rgba(244, 241, 236, 0.07)"
           strokeWidth={strokeWidth}
           fill="transparent"
         />
@@ -82,18 +81,18 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
             <motion.span
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className={`font-display font-extrabold tracking-tight ${colors.text}`}
+              className={`font-serif font-extrabold tracking-tight ${colors.text}`}
               style={{ fontSize: size * 0.28 }}
             >
               {Math.round(value)}
             </motion.span>
             {label && (
-              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-0.5">
+              <span className="text-[10px] font-bold text-[#A8A29B] uppercase tracking-widest mt-0.5">
                 {label}
               </span>
             )}
             {sublabel && (
-              <span className="text-[10px] text-text-tertiary mt-0.5">{sublabel}</span>
+              <span className="text-[10px] text-[#635E58] mt-0.5">{sublabel}</span>
             )}
           </>
         )}

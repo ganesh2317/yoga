@@ -37,7 +37,7 @@ export const BottomNav: React.FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 p-4 max-w-md mx-auto pointer-events-none">
-      <div className="pointer-events-auto rounded-3xl bg-[#0D131C]/85 border border-white/12 backdrop-blur-2xl shadow-glass-glow p-1.5 flex items-center justify-around">
+      <div className="pointer-events-auto rounded-3xl bg-[#13151A]/90 border border-[#F4F1EC]/12 backdrop-blur-2xl shadow-glass-glow p-1.5 flex items-center justify-around">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -47,18 +47,18 @@ export const BottomNav: React.FC = () => {
               key={item.id}
               onClick={() => navigate(item.path)}
               className={`relative flex flex-col items-center justify-center py-2 px-3.5 rounded-2xl transition-colors duration-200 select-none ${
-                isActive ? 'text-bg-darkest font-bold' : 'text-text-secondary hover:text-text-primary'
+                isActive ? 'text-[#F4F1EC] font-bold' : 'text-[#635E58] hover:text-[#A8A29B]'
               }`}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeTabPill"
-                  className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-2xl shadow-md shadow-emerald-500/25"
+                  className="absolute inset-0 bg-[#3F6B4F] rounded-2xl shadow-md shadow-[#3F6B4F]/30 border border-[#88C49D]/30"
                   transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                 />
               )}
               <span className="relative z-10 flex flex-col items-center gap-0.5">
-                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2px] text-[#F4F1EC]' : 'stroke-[1.5px]'}`} />
                 <span className="text-[10px] tracking-tight">{item.label}</span>
               </span>
             </button>

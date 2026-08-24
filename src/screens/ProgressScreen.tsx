@@ -1,39 +1,31 @@
-import React from 'react';
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  AreaChart,
-  Area,
-} from 'recharts';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { TrendingUp, Calendar } from 'lucide-react';
 import { GlassCard } from '../components/GlassCard';
 import { TopBar } from '../components/TopBar';
+import { getAllSessions } from '../services/db';
 import { useSessionStore } from '../store/useSessionStore';
+import type { SessionSummary } from '../types';
 
 export const ProgressScreen: React.FC = () => {
-  const { sessions, streak } = useSessionStore();
+  const navigate = useNavigate();
+  const { streak } = useSessionStore();
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
 
-  const poseCounts: Record<string, number> = {};
-  sessions.forEach((s) => {
-    poseCounts[s.poseName] = (poseCounts[s.poseName] || 0) + 1;
-  });
+  useEffect(() => {
+    async function load() {
+      const data = await getAllSessions();
+      setSessions(data);
+    }
+    load();
+  }, []);
 
-  const poseChartData = Object.entries(poseCounts).map(([name, count]) => ({
-    name: name.length > 10 ? name.substring(0, 10) + '...' : name,
-    count,
+  const chartData = sessions.slice(0, 7).reverse().map((s) => ({
+    date: s.dateString.slice(5),
+    score: s.averageScore,
+    duration: Math.round(s.durationSeconds / 60),
   }));
-
-  const timeChartData = sessions
-    .slice(0, 10)
-    .reverse()
-    .map((s, idx) => ({
-      index: `#${idx + 1}`,
-      score: s.averageScore,
-      duration: Math.round(s.durationSeconds / 60),
-    }));
 
   const avgScore =
     sessions.length > 0
@@ -41,112 +33,142 @@ export const ProgressScreen: React.FC = () => {
       : 85;
 
   return (
-    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-6">
-      <TopBar title="Analytics & Progress" />
+    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">
+      <TopBar title="Analytics & Progress" showBack onBack={() => navigate('/home')} />
 
-      {/* Asymmetric Header Metric Cards */}
-      <div className="grid grid-cols-5 gap-3">
-        <GlassCard variant="focal" className="col-span-3 p-5 space-y-1">
-          <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-widest block">
-            Average Score
+      <div className="space-y-1">
+        <span className="text-[10px] font-bold text-[#C9A66B] uppercase tracking-widest block">
+          Practice Insights
+        </span>
+        <h2 className="font-serif font-extrabold text-3xl text-[#F4F1EC]">
+          Analytics & Progress
+        </h2>
+        <p className="text-xs text-[#A8A29B]">
+          Track posture form improvement over time.
+        </p>
+      </div>
+
+      {/* Asymmetric Hero Metrics Grid */}
+      <div className="grid grid-cols-3 gap-3">
+        <GlassCard variant="focal" glowColor="forest" className="p-4 text-center">
+          <span className="text-[10px] font-bold text-[#635E58] uppercase tracking-widest block mb-1">
+            Avg Score
           </span>
-          <p className="font-display font-extrabold text-4xl text-accent-mint tracking-tight">
+          <p className="font-serif font-extrabold text-3xl text-[#88C49D]">
             {avgScore}
           </p>
-          <span className="text-xs text-text-secondary block pt-1">
-            Across {sessions.length} logged sessions
-          </span>
+          <span className="text-[10px] text-[#A8A29B] font-medium mt-1 block">Form Rating</span>
         </GlassCard>
 
-        {/* Unboxed side stat for contrast */}
-        <div className="col-span-2 p-4 rounded-2xl bg-white/[0.025] border border-white/[0.06] flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-widest">
-            Total Time
+        <GlassCard variant="focal" glowColor="ochre" className="p-4 text-center">
+          <span className="text-[10px] font-bold text-[#635E58] uppercase tracking-widest block mb-1">
+            Streak
           </span>
-          <div>
-            <p className="font-display font-extrabold text-2xl text-accent-emerald">
-              {streak.totalMinutes}<span className="text-xs text-text-secondary font-normal ml-0.5">m</span>
-            </p>
-            <span className="text-[11px] text-amber-300 font-semibold block mt-0.5">
-              {streak.currentStreak}d streak
-            </span>
-          </div>
-        </div>
+          <p className="font-serif font-extrabold text-3xl text-[#C9A66B]">
+            {streak.currentStreak}d
+          </p>
+          <span className="text-[10px] text-[#A8A29B] font-medium mt-1 block">Active Habit</span>
+        </GlassCard>
+
+        <GlassCard className="p-4 text-center">
+          <span className="text-[10px] font-bold text-[#635E58] uppercase tracking-widest block mb-1">
+            Sessions
+          </span>
+          <p className="font-serif font-extrabold text-3xl text-[#F4F1EC]">
+            {streak.totalSessions}
+          </p>
+          <span className="text-[10px] text-[#A8A29B] font-medium mt-1 block">Total Logged</span>
+        </GlassCard>
       </div>
 
-      {/* Main Score Trajectory Wide Area Chart */}
-      <div className="space-y-2">
+      {/* Recharts Score Trend Card */}
+      <GlassCard className="p-5 space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-widest">
-            Score Trajectory (Last 10 Sessions)
-          </h3>
-          <span className="text-[11px] text-accent-emerald font-semibold">Live Trend</span>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-[#88C49D] stroke-[1.5px]" />
+            <h3 className="font-serif font-bold text-base text-[#F4F1EC]">
+              Score Trend (Recent)
+            </h3>
+          </div>
+          <span className="text-[11px] font-semibold text-[#C9A66B]">Last 7 Sessions</span>
         </div>
 
-        <GlassCard className="p-4 h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={timeChartData}>
-              <defs>
-                <linearGradient id="scoreColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="index" stroke="#64748B" fontSize={11} tickLine={false} />
-              <YAxis domain={[40, 100]} stroke="#64748B" fontSize={11} tickLine={false} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#0D131C',
-                  borderColor: 'rgba(255,255,255,0.18)',
-                  borderRadius: '14px',
-                  color: '#F8FAFC',
-                  fontSize: '12px',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="score"
-                stroke="#10B981"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#scoreColor)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </GlassCard>
-      </div>
-
-      {/* Pose Frequency Distribution Chart */}
-      <div className="space-y-2">
-        <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-widest">
-          Pose Distribution Breakdown
-        </h3>
-        <GlassCard className="p-4 h-52">
-          {poseChartData.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-xs text-text-tertiary">
-              Complete practice sessions to view pose distribution
+        <div className="h-44 w-full pt-2">
+          {chartData.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-xs text-[#635E58]">
+              No practice data yet to chart
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={poseChartData}>
-                <XAxis dataKey="name" stroke="#64748B" fontSize={10} tickLine={false} />
-                <YAxis allowDecimals={false} stroke="#64748B" fontSize={11} tickLine={false} />
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3F6B4F" stopOpacity={0.6} />
+                    <stop offset="95%" stopColor="#3F6B4F" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" stroke="#635E58" fontSize={10} tickLine={false} />
+                <YAxis domain={[50, 100]} stroke="#635E58" fontSize={10} tickLine={false} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0D131C',
-                    borderColor: 'rgba(255,255,255,0.18)',
-                    borderRadius: '14px',
-                    color: '#F8FAFC',
+                    backgroundColor: '#13151A',
+                    borderColor: 'rgba(244,241,236,0.15)',
+                    borderRadius: '12px',
+                    color: '#F4F1EC',
                     fontSize: '12px',
                   }}
                 />
-                <Bar dataKey="count" fill="#34D399" radius={[6, 6, 0, 0]} />
+                <Area
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#88C49D"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#scoreGrad)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </GlassCard>
+
+      {/* Session Minutes Bar Chart */}
+      <GlassCard className="p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-[#C9A66B] stroke-[1.5px]" />
+            <h3 className="font-serif font-bold text-base text-[#F4F1EC]">
+              Practice Duration (Mins)
+            </h3>
+          </div>
+          <span className="text-[11px] font-semibold text-[#A8A29B]">{streak.totalMinutes} total mins</span>
+        </div>
+
+        <div className="h-40 w-full pt-2">
+          {chartData.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-xs text-[#635E58]">
+              No practice data yet to chart
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <XAxis dataKey="date" stroke="#635E58" fontSize={10} tickLine={false} />
+                <YAxis stroke="#635E58" fontSize={10} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#13151A',
+                    borderColor: 'rgba(244,241,236,0.15)',
+                    borderRadius: '12px',
+                    color: '#F4F1EC',
+                    fontSize: '12px',
+                  }}
+                />
+                <Bar dataKey="duration" fill="#C9A66B" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
-        </GlassCard>
-      </div>
+        </div>
+      </GlassCard>
     </div>
   );
 };

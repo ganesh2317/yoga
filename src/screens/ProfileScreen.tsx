@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Target, Shield, Flame, Check } from 'lucide-react';
+import { LogOut, Flame, Target, Shield } from 'lucide-react';
 import { GlassButton } from '../components/GlassButton';
 import { GlassCard } from '../components/GlassCard';
 import { TopBar } from '../components/TopBar';
@@ -11,14 +11,13 @@ export const ProfileScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, updateDailyGoal } = useAuthStore();
   const { streak } = useSessionStore();
+  const [goal, setGoal] = useState(user?.dailyGoalMinutes || 20);
+  const [isSaved, setIsSaved] = useState(false);
 
-  const [dailyGoalInput, setDailyGoalInput] = useState<number>(user?.dailyGoalMinutes || 20);
-  const [savedSuccess, setSavedSuccess] = useState(false);
-
-  const handleSaveGoal = () => {
-    updateDailyGoal(dailyGoalInput);
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2000);
+  const handleSaveGoal = async () => {
+    await updateDailyGoal(goal);
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
   };
 
   const handleLogout = async () => {
@@ -28,116 +27,99 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">
-      <TopBar title="User Profile" />
+      <TopBar title="User Profile" showBack onBack={() => navigate('/home')} />
 
-      {/* User Info Header Card */}
-      <GlassCard variant="glow" glowColor="green" className="p-6 text-center space-y-3">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-accent-green to-accent-emerald mx-auto flex items-center justify-center font-display font-extrabold text-3xl text-bg-darkest shadow-green-glow">
+      {/* User Header Focal Card */}
+      <GlassCard variant="focal" glowColor="forest" className="p-6 text-center flex flex-col items-center space-y-3">
+        <div className="w-20 h-20 rounded-full bg-[#3F6B4F] border-2 border-[#88C49D]/40 text-[#F4F1EC] flex items-center justify-center font-serif font-extrabold text-3xl shadow-lg shadow-[#3F6B4F]/30">
           {user?.name ? user.name.charAt(0).toUpperCase() : 'Y'}
         </div>
 
         <div>
-          <h2 className="font-display font-extrabold text-2xl text-text-primary">
-            {user?.name || 'Yogi User'}
+          <h2 className="font-serif font-extrabold text-2xl text-[#F4F1EC]">
+            {user?.name || 'Yogi Practitioner'}
           </h2>
-          <p className="text-xs text-text-secondary">{user?.email || 'demo@yogasense.ai'}</p>
+          <p className="text-xs text-[#A8A29B] font-medium">{user?.email || 'yogi@yogasense.ai'}</p>
         </div>
 
-        <div className="pt-3 border-t border-white/10 flex items-center justify-center gap-2 text-xs text-text-tertiary">
-          <Shield className="w-4 h-4 text-accent-emerald" />
-          <span>Local Encrypted Session Active</span>
+        <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#C9A66B]/15 border border-[#C9A66B]/30 text-[#E2C389] text-xs font-bold">
+            <Flame className="w-4 h-4 text-[#C9A66B] fill-[#C9A66B]" />
+            <span>{streak.currentStreak} Day Streak</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#3F6B4F]/20 border border-[#3F6B4F]/40 text-[#88C49D] text-xs font-bold">
+            <Shield className="w-4 h-4 text-[#88C49D]" />
+            <span>Local IndexedDB</span>
+          </div>
         </div>
       </GlassCard>
 
-      {/* Daily Practice Goal Settings */}
-      <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-          Practice Goal Configuration
-        </h3>
-
-        <GlassCard className="p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-accent-green/20 border border-accent-green/30 flex items-center justify-center text-accent-mint">
-                <Target className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-display font-bold text-sm text-text-primary">Daily Goal Target</h4>
-                <p className="text-xs text-text-tertiary">Target practice duration per day</p>
-              </div>
-            </div>
-
-            <span className="font-display font-extrabold text-lg text-accent-emerald">
-              {dailyGoalInput} min
-            </span>
+      {/* Daily Goal Settings Card */}
+      <GlassCard className="p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-[#C9A66B] stroke-[1.5px]" />
+            <h3 className="font-serif font-bold text-base text-[#F4F1EC]">
+              Daily Goal Minutes
+            </h3>
           </div>
+          <span className="font-serif font-bold text-lg text-[#C9A66B]">{goal} min</span>
+        </div>
 
-          {/* Goal options */}
-          <div className="grid grid-cols-4 gap-2">
-            {[10, 15, 20, 30].map((mins) => (
-              <button
-                key={mins}
-                onClick={() => setDailyGoalInput(mins)}
-                className={`py-2 rounded-xl text-xs font-bold transition-all ${
-                  dailyGoalInput === mins
-                    ? 'bg-accent-green text-bg-darkest shadow-md shadow-accent-green/30'
-                    : 'bg-white/5 text-text-secondary hover:bg-white/10 border border-white/10'
-                }`}
-              >
-                {mins} m
-              </button>
-            ))}
+        <div className="space-y-2">
+          <input
+            type="range"
+            min={5}
+            max={60}
+            step={5}
+            value={goal}
+            onChange={(e) => setGoal(Number(e.target.value))}
+            className="w-full accent-[#3F6B4F] bg-white/10 h-2 rounded-lg cursor-pointer"
+          />
+          <div className="flex justify-between text-[10px] text-[#635E58]">
+            <span>5 mins</span>
+            <span>30 mins</span>
+            <span>60 mins</span>
           </div>
+        </div>
 
-          <GlassButton
-            onClick={handleSaveGoal}
-            variant="secondary"
-            fullWidth
-            size="sm"
-            leftIcon={savedSuccess ? <Check className="w-4 h-4 text-accent-green" /> : undefined}
-          >
-            {savedSuccess ? 'Goal Saved!' : 'Save Practice Target'}
-          </GlassButton>
-        </GlassCard>
-      </div>
+        <GlassButton
+          onClick={handleSaveGoal}
+          variant="primary"
+          size="md"
+          fullWidth
+        >
+          {isSaved ? 'Goal Saved!' : 'Update Practice Goal'}
+        </GlassButton>
+      </GlassCard>
 
-      {/* Account Habit Overview */}
-      <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-          Habit Metrics
-        </h3>
-
-        <GlassCard className="p-4 space-y-3">
-          <div className="flex items-center justify-between text-xs py-1 border-b border-white/10">
-            <span className="text-text-secondary">Current Active Streak</span>
-            <span className="font-bold text-amber-300 flex items-center gap-1">
-              <Flame className="w-3.5 h-3.5 fill-amber-400" />
-              {streak.currentStreak} Days
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-xs py-1 border-b border-white/10">
-            <span className="text-text-secondary">Total Logged Sessions</span>
-            <span className="font-bold text-text-primary">{streak.totalSessions}</span>
-          </div>
-          <div className="flex items-center justify-between text-xs py-1">
-            <span className="text-text-secondary">Total Practice Time</span>
-            <span className="font-bold text-accent-emerald">{streak.totalMinutes} Mins</span>
-          </div>
-        </GlassCard>
-      </div>
+      {/* App Info Card */}
+      <GlassCard className="p-4 space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-[#635E58]">Vision Engine</span>
+          <span className="text-[#F4F1EC] font-semibold">MediaPipe PoseLandmarker (WASM)</span>
+        </div>
+        <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2">
+          <span className="text-[#635E58]">Persistence</span>
+          <span className="text-[#F4F1EC] font-semibold">IndexedDB (idb v8)</span>
+        </div>
+        <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2">
+          <span className="text-[#635E58]">Version</span>
+          <span className="text-[#C9A66B] font-mono font-bold">Round 3 Refined v3.0</span>
+        </div>
+      </GlassCard>
 
       {/* Logout Action */}
-      <div className="pt-2">
-        <GlassButton
-          onClick={handleLogout}
-          variant="danger"
-          size="lg"
-          fullWidth
-          leftIcon={<LogOut className="w-5 h-5" />}
-        >
-          Sign Out of YogaSense AI
-        </GlassButton>
-      </div>
+      <GlassButton
+        onClick={handleLogout}
+        variant="danger"
+        size="lg"
+        fullWidth
+        leftIcon={<LogOut className="w-5 h-5" />}
+      >
+        Sign Out
+      </GlassButton>
     </div>
   );
 };
