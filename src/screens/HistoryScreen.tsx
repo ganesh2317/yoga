@@ -26,28 +26,28 @@ export const HistoryScreen: React.FC = () => {
       <TopBar title="Session History" showBack onBack={() => navigate('/home')} />
 
       <div className="space-y-1">
-        <span className="text-[10px] font-bold text-[#C9A66B] uppercase tracking-widest block">
+        <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-widest block">
           Practice Log
         </span>
-        <h2 className="font-serif font-extrabold text-3xl text-[#F4F1EC]">
+        <h2 className="font-display font-extrabold text-3xl text-[#F5F7FA]">
           Session History
         </h2>
-        <p className="text-xs text-[#A8A29B]">
+        <p className="text-xs text-[#94A3B8]">
           {sessions.length} recorded posture sessions in IndexedDB.
         </p>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-xs text-[#635E58]">
+        <div className="text-center py-12 text-xs text-[#64748B]">
           Loading session logs...
         </div>
       ) : sessions.length === 0 ? (
         <GlassCard className="p-8 text-center space-y-3">
-          <HistoryIcon className="w-10 h-10 text-[#635E58] mx-auto stroke-[1.5px]" />
-          <h3 className="font-serif font-bold text-lg text-[#F4F1EC]">
+          <HistoryIcon className="w-10 h-10 text-[#64748B] mx-auto stroke-[1.75px]" />
+          <h3 className="font-display font-bold text-lg text-[#F5F7FA]">
             No Sessions Recorded
           </h3>
-          <p className="text-xs text-[#A8A29B]">
+          <p className="text-xs text-[#94A3B8]">
             Start a live pose detection session to log your posture score history!
           </p>
         </GlassCard>
@@ -63,16 +63,16 @@ export const HistoryScreen: React.FC = () => {
                 className="p-4 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/12 flex items-center justify-center font-serif font-extrabold text-[#88C49D] text-lg shrink-0">
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/12 flex items-center justify-center font-display font-extrabold text-[#34D399] text-lg shrink-0">
                     {ses.averageScore}
                   </div>
                   <div>
-                    <h4 className="font-serif font-bold text-base text-[#F4F1EC]">
+                    <h4 className="font-display font-bold text-base text-[#F5F7FA]">
                       {ses.poseName}
                     </h4>
-                    <div className="flex items-center gap-2 text-xs text-[#635E58] mt-0.5">
+                    <div className="flex items-center gap-2 text-xs text-[#64748B] mt-0.5">
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-[#635E58]" />
+                        <Calendar className="w-3 h-3 text-[#64748B]" />
                         {ses.dateString}
                       </span>
                       <span>•</span>
@@ -83,7 +83,7 @@ export const HistoryScreen: React.FC = () => {
 
                 <div className="flex items-center gap-2">
                   <StatusBadge status={status} size="sm" />
-                  <ChevronRight className="w-4 h-4 text-[#635E58]" />
+                  <ChevronRight className="w-4 h-4 text-[#64748B]" />
                 </div>
               </GlassCard>
             );

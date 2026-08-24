@@ -28,10 +28,10 @@ export const ScoreScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0C0D10] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#0A0E14] flex items-center justify-center p-4">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-2 border-[#3F6B4F] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-[#A8A29B]">Calculating posture alignment score...</p>
+          <div className="w-10 h-10 border-2 border-[#22C55E] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs text-[#94A3B8]">Calculating posture alignment score...</p>
         </div>
       </div>
     );
@@ -44,7 +44,7 @@ export const ScoreScreen: React.FC = () => {
   const mins = Math.floor(durationSec / 60);
   const secs = durationSec % 60;
 
-  const scoreColorScheme = score >= 85 ? 'forest' : score >= 65 ? 'ochre' : 'rust';
+  const scoreColorScheme = score >= 85 ? 'emerald' : score >= 65 ? 'amber' : 'red';
   const statusType = score >= 85 ? 'Good' : score >= 65 ? 'Slight' : 'Poor';
 
   const cb = session?.categoryBreakdown || {
@@ -56,11 +56,11 @@ export const ScoreScreen: React.FC = () => {
   };
 
   const categoryList = [
-    { category: 'Knee', score: cb.knee || 90 },
-    { category: 'Torso', score: cb.torso || 85 },
-    { category: 'Shoulder', score: cb.shoulder || 80 },
-    { category: 'Hip', score: cb.hip || 88 },
-    { category: 'Balance', score: cb.balance || 86 },
+    { category: 'Knee Alignment', score: cb.knee || 92 },
+    { category: 'Torso Tilt', score: cb.torso || 84 },
+    { category: 'Shoulder Position', score: cb.shoulder || 78 },
+    { category: 'Hip Balance', score: cb.hip || 86 },
+    { category: 'Overall Stability', score: cb.balance || 88 },
   ];
 
   return (
@@ -68,18 +68,18 @@ export const ScoreScreen: React.FC = () => {
       <TopBar title="Session Summary" showBack onBack={() => navigate('/home')} />
 
       <div className="text-center space-y-1 pt-1">
-        <span className="text-[10px] font-bold text-[#C9A66B] uppercase tracking-widest block">
+        <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-widest block">
           Session Completed
         </span>
-        <h2 className="font-serif font-extrabold text-3xl text-[#F4F1EC]">
+        <h2 className="font-display font-extrabold text-3xl text-[#F5F7FA]">
           {poseName}
         </h2>
-        <p className="text-xs text-[#C9A66B] italic font-medium">
+        <p className="text-xs text-[#F59E0B] italic font-medium">
           {sanskritName}
         </p>
       </div>
 
-      {/* Hero Score Ring Focal Card */}
+      {/* Hero Score Ring Focal Card matching reference style */}
       <GlassCard variant="focal" glowColor={scoreColorScheme} className="p-6 text-center flex flex-col items-center justify-center space-y-4">
         <CircularProgressRing
           value={score}
@@ -88,10 +88,10 @@ export const ScoreScreen: React.FC = () => {
           strokeWidth={12}
           colorScheme={scoreColorScheme}
         >
-          <span className="font-serif font-extrabold text-5xl text-[#F4F1EC]">
+          <span className="font-display font-extrabold text-5xl text-[#F5F7FA]">
             {score}
           </span>
-          <span className="text-[10px] font-bold text-[#A8A29B] uppercase tracking-widest mt-0.5">
+          <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mt-0.5">
             Form Score
           </span>
         </CircularProgressRing>
@@ -109,45 +109,51 @@ export const ScoreScreen: React.FC = () => {
 
         <div className="grid grid-cols-2 gap-4 w-full pt-3 border-t border-white/10">
           <div>
-            <span className="text-[10px] text-[#635E58] uppercase tracking-widest block">
+            <span className="text-[10px] text-[#64748B] uppercase tracking-widest block">
               Duration
             </span>
-            <p className="font-serif font-bold text-lg text-[#F4F1EC]">
+            <p className="font-display font-bold text-lg text-[#F5F7FA]">
               {mins > 0 ? `${mins}m ${secs}s` : `${secs}s`}
             </p>
           </div>
           <div>
-            <span className="text-[10px] text-[#635E58] uppercase tracking-widest block">
+            <span className="text-[10px] text-[#64748B] uppercase tracking-widest block">
               Est. Calories
             </span>
-            <p className="font-serif font-bold text-lg text-[#88C49D]">
+            <p className="font-display font-bold text-lg text-[#34D399]">
               {session?.caloriesBurned || 4} kcal
             </p>
           </div>
         </div>
       </GlassCard>
 
-      {/* Unboxed Category Alignment Breakdown */}
+      {/* Breakdown Rows matching the reference screenshot layout */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold text-[#A8A29B] uppercase tracking-widest">
-          Joint Category Breakdown
+        <h3 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
+          Joint Alignment Breakdown
         </h3>
 
-        <div className="space-y-2.5">
-          {categoryList.map((cat, idx) => (
-            <div key={idx} className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-[#F4F1EC]">{cat.category}</span>
-                <span className="font-serif font-bold text-[#C9A66B]">{cat.score}%</span>
+        <div className="space-y-3">
+          {categoryList.map((cat, idx) => {
+            const isGood = cat.score >= 85;
+            const barColor = isGood ? 'from-[#22C55E] to-[#34D399]' : 'from-[#F59E0B] to-[#FBBF24]';
+            const textColor = isGood ? 'text-[#34D399]' : 'text-[#F59E0B]';
+
+            return (
+              <div key={idx} className="space-y-1.5 p-3 rounded-2xl bg-[#151B24] border border-white/8">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-[#F5F7FA]">{cat.category}</span>
+                  <span className={`font-display font-extrabold ${textColor}`}>{cat.score}/100</span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-white/5 border border-white/10 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${barColor}`}
+                    style={{ width: `${cat.score}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-2 rounded-full bg-white/5 border border-white/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-[#3F6B4F] to-[#88C49D]"
-                  style={{ width: `${cat.score}%` }}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

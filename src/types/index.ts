@@ -1,4 +1,4 @@
-export type PoseCategory = 'All' | 'Standing' | 'Seated' | 'Backbend' | 'Inversion';
+export type PoseCategory = 'All' | 'Standing' | 'Seated' | 'Backbend' | 'Inversion' | 'Balance' | 'Twist';
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 export type JointStatus = 'Good' | 'Slight' | 'Poor';
 

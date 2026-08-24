@@ -30,26 +30,26 @@ export const ProfileScreen: React.FC = () => {
       <TopBar title="User Profile" showBack onBack={() => navigate('/home')} />
 
       {/* User Header Focal Card */}
-      <GlassCard variant="focal" glowColor="forest" className="p-6 text-center flex flex-col items-center space-y-3">
-        <div className="w-20 h-20 rounded-full bg-[#3F6B4F] border-2 border-[#88C49D]/40 text-[#F4F1EC] flex items-center justify-center font-serif font-extrabold text-3xl shadow-lg shadow-[#3F6B4F]/30">
+      <GlassCard variant="focal" glowColor="emerald" className="p-6 text-center flex flex-col items-center space-y-3">
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#22C55E] to-[#34D399] border-2 border-[#34D399]/50 text-[#0A0E14] flex items-center justify-center font-display font-extrabold text-3xl shadow-lg shadow-[#22C55E]/30">
           {user?.name ? user.name.charAt(0).toUpperCase() : 'Y'}
         </div>
 
         <div>
-          <h2 className="font-serif font-extrabold text-2xl text-[#F4F1EC]">
+          <h2 className="font-display font-extrabold text-2xl text-[#F5F7FA]">
             {user?.name || 'Yogi Practitioner'}
           </h2>
-          <p className="text-xs text-[#A8A29B] font-medium">{user?.email || 'yogi@yogasense.ai'}</p>
+          <p className="text-xs text-[#94A3B8] font-medium">{user?.email || 'yogi@yogasense.ai'}</p>
         </div>
 
         <div className="flex items-center gap-2 pt-1">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#C9A66B]/15 border border-[#C9A66B]/30 text-[#E2C389] text-xs font-bold">
-            <Flame className="w-4 h-4 text-[#C9A66B] fill-[#C9A66B]" />
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F59E0B]/15 border border-[#F59E0B]/30 text-[#FBBF24] text-xs font-bold">
+            <Flame className="w-4 h-4 text-[#F59E0B] fill-[#F59E0B]" />
             <span>{streak.currentStreak} Day Streak</span>
           </div>
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#3F6B4F]/20 border border-[#3F6B4F]/40 text-[#88C49D] text-xs font-bold">
-            <Shield className="w-4 h-4 text-[#88C49D]" />
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#22C55E]/15 border border-[#22C55E]/30 text-[#34D399] text-xs font-bold">
+            <Shield className="w-4 h-4 text-[#34D399]" />
             <span>Local IndexedDB</span>
           </div>
         </div>
@@ -59,12 +59,12 @@ export const ProfileScreen: React.FC = () => {
       <GlassCard className="p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-[#C9A66B] stroke-[1.5px]" />
-            <h3 className="font-serif font-bold text-base text-[#F4F1EC]">
+            <Target className="w-4 h-4 text-[#F59E0B] stroke-[1.75px]" />
+            <h3 className="font-display font-bold text-base text-[#F5F7FA]">
               Daily Goal Minutes
             </h3>
           </div>
-          <span className="font-serif font-bold text-lg text-[#C9A66B]">{goal} min</span>
+          <span className="font-display font-bold text-lg text-[#F59E0B]">{goal} min</span>
         </div>
 
         <div className="space-y-2">
@@ -75,9 +75,9 @@ export const ProfileScreen: React.FC = () => {
             step={5}
             value={goal}
             onChange={(e) => setGoal(Number(e.target.value))}
-            className="w-full accent-[#3F6B4F] bg-white/10 h-2 rounded-lg cursor-pointer"
+            className="w-full accent-[#22C55E] bg-white/10 h-2 rounded-lg cursor-pointer"
           />
-          <div className="flex justify-between text-[10px] text-[#635E58]">
+          <div className="flex justify-between text-[10px] text-[#64748B]">
             <span>5 mins</span>
             <span>30 mins</span>
             <span>60 mins</span>
@@ -97,16 +97,16 @@ export const ProfileScreen: React.FC = () => {
       {/* App Info Card */}
       <GlassCard className="p-4 space-y-2">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-[#635E58]">Vision Engine</span>
-          <span className="text-[#F4F1EC] font-semibold">MediaPipe PoseLandmarker (WASM)</span>
+          <span className="text-[#64748B]">Vision Engine</span>
+          <span className="text-[#F5F7FA] font-semibold">MediaPipe PoseLandmarker (Heavy GPU)</span>
         </div>
         <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2">
-          <span className="text-[#635E58]">Persistence</span>
-          <span className="text-[#F4F1EC] font-semibold">IndexedDB (idb v8)</span>
+          <span className="text-[#64748B]">Persistence</span>
+          <span className="text-[#F5F7FA] font-semibold">IndexedDB (idb v8)</span>
         </div>
         <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2">
-          <span className="text-[#635E58]">Version</span>
-          <span className="text-[#C9A66B] font-mono font-bold">Round 3 Refined v3.0</span>
+          <span className="text-[#64748B]">Version</span>
+          <span className="text-[#F59E0B] font-mono font-bold">Round 4 Refined v4.0</span>
         </div>
       </GlassCard>
 

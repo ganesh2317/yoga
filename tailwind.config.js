@@ -8,56 +8,54 @@ export default {
     extend: {
       colors: {
         bg: {
-          darkest: "#0C0D10", // Neutral graphite-black (no blue tint)
-          surface: "#13151A",
-          elevated: "#1A1D24",
-          card: "rgba(244, 241, 236, 0.05)",
-        },
-        glass: {
-          fill: "rgba(244, 241, 236, 0.05)",
-          hover: "rgba(244, 241, 236, 0.09)",
-          border: "rgba(244, 241, 236, 0.10)",
-          highlight: "rgba(244, 241, 236, 0.18)",
+          darkest: "#0A0E14", // Deep charcoal-navy near-black
+          surface: "#0F1620", // Panel/screen background
+          card: "#151B24",    // Dark charcoal card fill
         },
         accent: {
-          forest: "#3F6B4F",   // Deep muted forest/moss green
-          moss: "#528364",
-          mint: "#88C49D",
-          ochre: "#C9A66B",    // Warm ochre/gold secondary accent
-          gold: "#E2C389",
-          rust: "#C1502E",     // Warm rust/terracotta tertiary alert
+          emerald: "#22C55E", // Bright emerald primary accent
+          mint: "#34D399",
+          amber: "#F59E0B",   // Warm amber/gold highlight & liquid glass material tint
+          gold: "#FBBF24",
+          red: "#EF4444",     // Poor / error red
         },
         status: {
-          good: "#3F6B4F",
-          slight: "#C9A66B",
-          poor: "#C1502E",
+          good: "#22C55E",
+          slight: "#F59E0B",
+          poor: "#EF4444",
         },
         text: {
-          primary: "#F4F1EC",  // Warm off-white
-          secondary: "#A8A29B",// Warm grey
-          tertiary: "#635E58",
+          primary: "#F5F7FA",   // Clean off-white primary
+          secondary: "#94A3B8", // Slate grey secondary
+          tertiary: "#64748B",  // Muted slate tertiary
         }
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        serif: ['Fraunces', 'serif'],
-        display: ['Fraunces', 'serif'],
+        display: ['Manrope', 'sans-serif'],
+        heading: ['Manrope', 'sans-serif'],
+        serif: ['Manrope', 'sans-serif'], // Fallback mapping so font-serif uses Manrope
       },
       boxShadow: {
-        'glass-subtle': '0 8px 32px 0 rgba(0, 0, 0, 0.40)',
-        'glass-glow': '0 14px 44px 0 rgba(0, 0, 0, 0.55)',
-        'forest-glow': '0 0 32px -4px rgba(63, 107, 79, 0.30)',
-        'ochre-glow': '0 0 32px -4px rgba(201, 166, 107, 0.30)',
-        'rust-glow': '0 0 32px -4px rgba(193, 80, 46, 0.30)',
+        'glass-subtle': '0 8px 32px 0 rgba(0, 0, 0, 0.45)',
+        'glass-glow': '0 14px 44px 0 rgba(0, 0, 0, 0.65)',
+        'emerald-glow': '0 0 28px -4px rgba(34, 197, 94, 0.35)',
+        'amber-glow': '0 0 28px -4px rgba(245, 158, 11, 0.35)',
+        'red-glow': '0 0 28px -4px rgba(239, 68, 68, 0.35)',
       },
       animation: {
-        'blob-slow': 'blobFloat 32s infinite ease-in-out',
+        'liquid-sweep': 'liquidSweep 650ms ease-out forwards',
+        'ring-glint': 'ringGlint 900ms ease-in-out forwards',
       },
       keyframes: {
-        blobFloat: {
-          '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
-          '33%': { transform: 'translate(20px, -30px) scale(1.05)' },
-          '66%': { transform: 'translate(-15px, 15px) scale(0.97)' },
+        liquidSweep: {
+          '0%': { transform: 'translateX(-100%) translateY(-100%) rotate(45deg)' },
+          '100%': { transform: 'translateX(200%) translateY(200%) rotate(45deg)' },
+        },
+        ringGlint: {
+          '0%': { opacity: '0', strokeDashoffset: '400' },
+          '50%': { opacity: '0.9' },
+          '100%': { opacity: '0', strokeDashoffset: '0' },
         },
       }
     },

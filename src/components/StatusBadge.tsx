@@ -19,51 +19,51 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   const styles: Record<string, { bg: string; text: string; border: string; dot: string }> = {
     Good: {
-      bg: 'bg-[#3F6B4F]/20',
-      text: 'text-[#88C49D]',
-      border: 'border-[#3F6B4F]/40',
-      dot: 'bg-[#3F6B4F] shadow-[0_0_8px_rgba(63,107,79,0.5)]',
+      bg: 'bg-[#22C55E]/15',
+      text: 'text-[#34D399]',
+      border: 'border-[#22C55E]/35',
+      dot: 'bg-[#22C55E] shadow-[0_0_8px_rgba(34,197,94,0.6)]',
     },
     Slight: {
-      bg: 'bg-[#C9A66B]/20',
-      text: 'text-[#E2C389]',
-      border: 'border-[#C9A66B]/40',
-      dot: 'bg-[#C9A66B] shadow-[0_0_8px_rgba(201,166,107,0.5)]',
+      bg: 'bg-[#F59E0B]/15',
+      text: 'text-[#FBBF24]',
+      border: 'border-[#F59E0B]/35',
+      dot: 'bg-[#F59E0B] shadow-[0_0_8px_rgba(245,158,11,0.6)]',
     },
     Poor: {
-      bg: 'bg-[#C1502E]/20',
-      text: 'text-[#F4F1EC]',
-      border: 'border-[#C1502E]/40',
-      dot: 'bg-[#C1502E] shadow-[0_0_8px_rgba(193,80,46,0.5)]',
+      bg: 'bg-[#EF4444]/15',
+      text: 'text-[#F87171]',
+      border: 'border-[#EF4444]/35',
+      dot: 'bg-[#EF4444] shadow-[0_0_8px_rgba(239,68,68,0.6)]',
     },
     Beginner: {
-      bg: 'bg-[#3F6B4F]/15',
-      text: 'text-[#88C49D]',
-      border: 'border-[#3F6B4F]/30',
-      dot: 'bg-[#528364]',
+      bg: 'bg-[#22C55E]/12',
+      text: 'text-[#34D399]',
+      border: 'border-[#22C55E]/30',
+      dot: 'bg-[#22C55E]',
     },
     Intermediate: {
-      bg: 'bg-[#C9A66B]/15',
-      text: 'text-[#C9A66B]',
-      border: 'border-[#C9A66B]/30',
-      dot: 'bg-[#C9A66B]',
+      bg: 'bg-[#F59E0B]/12',
+      text: 'text-[#FBBF24]',
+      border: 'border-[#F59E0B]/30',
+      dot: 'bg-[#F59E0B]',
     },
     Advanced: {
-      bg: 'bg-[#C1502E]/15',
-      text: 'text-[#F4F1EC]',
-      border: 'border-[#C1502E]/30',
-      dot: 'bg-[#C1502E]',
+      bg: 'bg-[#EF4444]/12',
+      text: 'text-[#F87171]',
+      border: 'border-[#EF4444]/30',
+      dot: 'bg-[#EF4444]',
     },
   };
 
   const current = styles[status] || {
-    bg: 'bg-[#F4F1EC]/8',
-    text: 'text-[#A8A29B]',
-    border: 'border-[#F4F1EC]/12',
-    dot: 'bg-[#A8A29B]',
+    bg: 'bg-white/8',
+    text: 'text-[#94A3B8]',
+    border: 'border-white/12',
+    dot: 'bg-[#94A3B8]',
   };
 
-  const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-[11px]' : 'px-3 py-1 text-xs font-semibold';
+  const sizeClass = size === 'sm' ? 'px-2.5 py-0.5 text-[11px]' : 'px-3.5 py-1 text-xs font-semibold';
 
   return (
     <span

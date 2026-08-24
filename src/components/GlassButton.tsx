@@ -33,15 +33,15 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-[#3F6B4F] text-[#F4F1EC] font-bold shadow-lg shadow-[#3F6B4F]/25 hover:bg-[#528364] active:scale-95 border border-[#88C49D]/30',
+      'bg-gradient-to-r from-[#22C55E] to-[#34D399] text-[#0A0E14] font-extrabold shadow-lg shadow-[#22C55E]/30 hover:brightness-110 active:scale-95 active:shadow-[0_0_20px_rgba(245,158,11,0.35)] border border-[#34D399]/40',
     secondary:
-      'bg-[#F4F1EC]/10 text-[#F4F1EC] border border-[#F4F1EC]/18 backdrop-blur-xl hover:bg-[#F4F1EC]/15 hover:border-[#F4F1EC]/25 active:scale-95 shadow-glass-subtle',
+      'bg-white/8 text-[#F5F7FA] border border-white/15 backdrop-blur-xl hover:bg-white/12 hover:border-white/25 active:scale-95 active:shadow-[0_0_16px_rgba(245,158,11,0.25)] shadow-glass-subtle',
     warm:
-      'bg-[#C9A66B] text-[#0C0D10] font-extrabold shadow-lg shadow-[#C9A66B]/25 hover:bg-[#E2C389] active:scale-95 border border-[#E2C389]/40',
+      'bg-gradient-to-r from-[#F59E0B] to-[#FBBF24] text-[#0A0E14] font-extrabold shadow-lg shadow-[#F59E0B]/30 hover:brightness-110 active:scale-95 border border-[#FBBF24]/40',
     ghost:
-      'bg-transparent text-[#A8A29B] hover:text-[#F4F1EC] hover:bg-[#F4F1EC]/5 active:scale-95 border border-transparent',
+      'bg-transparent text-[#94A3B8] hover:text-[#F5F7FA] hover:bg-white/5 active:scale-95 border border-transparent',
     danger:
-      'bg-[#C1502E]/20 text-[#F4F1EC] border border-[#C1502E]/40 hover:bg-[#C1502E]/30 active:scale-95 shadow-rust-glow',
+      'bg-[#EF4444]/20 text-[#F5F7FA] border border-[#EF4444]/40 hover:bg-[#EF4444]/30 active:scale-95 shadow-red-glow',
   }[variant];
 
   return (
@@ -79,9 +79,9 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
         </svg>
       ) : (
         <>
-          {leftIcon && <span className="inline-flex shrink-0 opacity-80">{leftIcon}</span>}
+          {leftIcon && <span className="inline-flex shrink-0 opacity-90">{leftIcon}</span>}
           <span>{children}</span>
-          {rightIcon && <span className="inline-flex shrink-0 opacity-80">{rightIcon}</span>}
+          {rightIcon && <span className="inline-flex shrink-0 opacity-90">{rightIcon}</span>}
         </>
       )}
     </motion.button>

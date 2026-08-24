@@ -5,33 +5,38 @@ interface GlassCardProps extends HTMLMotionProps<'div'> {
   children: React.ReactNode;
   variant?: 'default' | 'focal' | 'interactive' | 'glow' | 'subtle';
   className?: string;
-  glowColor?: 'forest' | 'ochre' | 'rust';
+  glowColor?: 'emerald' | 'amber' | 'red' | 'forest' | 'ochre' | 'rust';
 }
 
 export const GlassCard: React.FC<GlassCardProps> = ({
   children,
   variant = 'default',
   className = '',
-  glowColor = 'forest',
+  glowColor = 'emerald',
   ...props
 }) => {
+  // Map legacy color tokens to reference tokens seamlessly
+  const activeGlow = glowColor === 'forest' ? 'emerald' : glowColor === 'ochre' ? 'amber' : glowColor === 'rust' ? 'red' : glowColor;
+
   const glowClasses = {
-    forest: 'shadow-forest-glow border-[#3F6B4F]/40',
-    ochre: 'shadow-ochre-glow border-[#C9A66B]/40',
-    rust: 'shadow-rust-glow border-[#C1502E]/40',
-  };
+    emerald: 'shadow-emerald-glow border-[#22C55E]/40',
+    amber: 'shadow-amber-glow border-[#F59E0B]/40',
+    red: 'shadow-red-glow border-[#EF4444]/40',
+  }[activeGlow];
 
   const baseStyle =
-    'relative overflow-hidden rounded-2xl bg-[#F4F1EC]/[0.045] border border-[#F4F1EC]/10 backdrop-blur-xl shadow-glass-subtle transition-all duration-300';
+    'relative overflow-hidden rounded-2xl bg-[#151B24]/90 border border-white/8 backdrop-blur-xl shadow-glass-subtle transition-all duration-300';
   const innerHighlight =
-    'before:absolute before:top-0 before:left-0 before:right-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-[#F4F1EC]/20 before:to-transparent before:pointer-events-none';
+    'before:absolute before:top-0 before:left-0 before:right-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/18 before:to-transparent before:pointer-events-none';
+  const amberSweep =
+    'after:absolute after:-top-1/2 after:-left-1/2 after:w-[200%] after:h-[200%] after:bg-gradient-to-r after:from-transparent after:via-amber-500/5 after:to-transparent after:pointer-events-none after:animate-liquid-sweep';
 
   const variantStyle = {
-    default: `${baseStyle} ${innerHighlight}`,
-    focal: `relative overflow-hidden rounded-2xl bg-[#F4F1EC]/[0.07] border border-[#F4F1EC]/15 backdrop-blur-2xl shadow-glass-glow ${innerHighlight}`,
-    interactive: `${baseStyle} ${innerHighlight} hover:bg-[#F4F1EC]/[0.08] hover:border-[#F4F1EC]/20 active:scale-[0.98] cursor-pointer`,
-    glow: `${baseStyle} ${innerHighlight} ${glowClasses[glowColor]}`,
-    subtle: 'rounded-2xl bg-[#F4F1EC]/[0.025] border border-[#F4F1EC]/[0.06] backdrop-blur-md',
+    default: `${baseStyle} ${innerHighlight} ${amberSweep}`,
+    focal: `relative overflow-hidden rounded-2xl bg-[#151B24]/95 border border-white/12 backdrop-blur-2xl shadow-glass-glow ${innerHighlight} ${amberSweep}`,
+    interactive: `${baseStyle} ${innerHighlight} hover:bg-[#1C2430] hover:border-white/18 active:scale-[0.98] active:shadow-[0_0_16px_rgba(245,158,11,0.25)] cursor-pointer`,
+    glow: `${baseStyle} ${innerHighlight} ${glowClasses} ${amberSweep}`,
+    subtle: 'rounded-2xl bg-[#151B24]/60 border border-white/[0.05] backdrop-blur-md',
   }[variant];
 
   return (

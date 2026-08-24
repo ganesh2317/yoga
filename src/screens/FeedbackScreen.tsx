@@ -69,26 +69,26 @@ export const FeedbackScreen: React.FC = () => {
       <TopBar title="Personalized Feedback" showBack onBack={() => navigate(-1)} />
 
       <div className="space-y-1">
-        <span className="text-[10px] font-bold text-[#C9A66B] uppercase tracking-widest block">
+        <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-widest block">
           AI Posture Analysis
         </span>
-        <h2 className="font-serif font-extrabold text-3xl text-[#F4F1EC]">
+        <h2 className="font-display font-extrabold text-3xl text-[#F5F7FA]">
           Personalized Tips
         </h2>
-        <p className="text-xs text-[#A8A29B]">
+        <p className="text-xs text-[#94A3B8]">
           Plain-English corrective cues generated from your live session.
         </p>
       </div>
 
-      {/* Audio Player Card */}
-      <GlassCard variant="focal" glowColor="ochre" className="p-4 flex items-center justify-between">
+      {/* Audio Player Card with Amber Frosted Blur */}
+      <GlassCard variant="focal" glowColor="amber" className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#C9A66B]/20 border border-[#C9A66B]/40 text-[#C9A66B] flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/20 border border-[#F59E0B]/40 text-[#F59E0B] flex items-center justify-center shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-serif font-bold text-sm text-[#F4F1EC]">Audio Guidance</h4>
-            <p className="text-[11px] text-[#A8A29B]">Listen to speech feedback reader</p>
+            <h4 className="font-display font-bold text-sm text-[#F5F7FA]">Audio Guidance</h4>
+            <p className="text-[11px] text-[#94A3B8]">Listen to speech feedback reader</p>
           </div>
         </div>
 
@@ -104,15 +104,15 @@ export const FeedbackScreen: React.FC = () => {
 
       {/* Corrective Tips Cards */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold text-[#A8A29B] uppercase tracking-widest">
+        <h3 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
           Actionable Posture Cues
         </h3>
 
         <div className="space-y-2.5">
           {tips.map((tip, idx) => (
             <GlassCard key={idx} className="p-4 flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#88C49D] shrink-0 mt-0.5" />
-              <p className="text-xs text-[#F4F1EC] leading-relaxed font-medium">
+              <CheckCircle2 className="w-5 h-5 text-[#34D399] shrink-0 mt-0.5" />
+              <p className="text-xs text-[#F5F7FA] leading-relaxed font-medium">
                 {tip}
               </p>
             </GlassCard>
@@ -122,13 +122,13 @@ export const FeedbackScreen: React.FC = () => {
 
       {/* Interactive Body Joint Diagram */}
       <div className="space-y-3 pt-2">
-        <h3 className="text-xs font-bold text-[#A8A29B] uppercase tracking-widest">
+        <h3 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
           Interactive Joint Map
         </h3>
 
         <GlassCard className="p-5 flex flex-col items-center justify-center">
           <BodySkeletonDiagram jointEvaluations={jointEvalMap} />
-          <span className="text-[10px] text-[#635E58] mt-3 font-medium">
+          <span className="text-[10px] text-[#64748B] mt-3 font-medium">
             Tap highlighted joint markers for target vs actual angles
           </span>
         </GlassCard>
@@ -136,7 +136,7 @@ export const FeedbackScreen: React.FC = () => {
 
       {/* Joint Angle List */}
       <div className="space-y-2">
-        <h3 className="text-xs font-bold text-[#A8A29B] uppercase tracking-widest">
+        <h3 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
           Joint Angle Measurements
         </h3>
 
@@ -144,8 +144,8 @@ export const FeedbackScreen: React.FC = () => {
           {jointList.map((je, i) => (
             <GlassCard key={i} className="p-3.5 flex items-center justify-between">
               <div>
-                <h4 className="font-serif font-bold text-sm text-[#F4F1EC]">{je.displayName}</h4>
-                <p className="text-[11px] text-[#635E58]">
+                <h4 className="font-display font-bold text-sm text-[#F5F7FA]">{je.displayName}</h4>
+                <p className="text-[11px] text-[#64748B]">
                   Target: {je.targetAngle}° • Actual: {Math.round(je.actualAngle)}°
                 </p>
               </div>

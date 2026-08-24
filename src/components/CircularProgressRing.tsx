@@ -8,7 +8,7 @@ interface CircularProgressRingProps {
   strokeWidth?: number;
   label?: string;
   sublabel?: string;
-  colorScheme?: 'forest' | 'ochre' | 'rust';
+  colorScheme?: 'emerald' | 'amber' | 'red' | 'forest' | 'ochre' | 'rust';
   children?: React.ReactNode;
 }
 
@@ -19,19 +19,21 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
   strokeWidth = 10,
   label,
   sublabel,
-  colorScheme = 'forest',
+  colorScheme = 'emerald',
   children,
 }) => {
+  const activeScheme = colorScheme === 'forest' ? 'emerald' : colorScheme === 'ochre' ? 'amber' : colorScheme === 'rust' ? 'red' : colorScheme;
+
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   const colors = {
-    forest: { stroke: '#3F6B4F', glow: 'rgba(63, 107, 79, 0.28)', text: 'text-[#88C49D]' },
-    ochre: { stroke: '#C9A66B', glow: 'rgba(201, 166, 107, 0.28)', text: 'text-[#C9A66B]' },
-    rust: { stroke: '#C1502E', glow: 'rgba(193, 80, 46, 0.28)', text: 'text-[#C1502E]' },
-  }[colorScheme];
+    emerald: { stroke: '#22C55E', glow: 'rgba(34, 197, 94, 0.32)', text: 'text-[#34D399]' },
+    amber: { stroke: '#F59E0B', glow: 'rgba(245, 158, 11, 0.32)', text: 'text-[#F59E0B]' },
+    red: { stroke: '#EF4444', glow: 'rgba(239, 68, 68, 0.32)', text: 'text-[#EF4444]' },
+  }[activeScheme];
 
   return (
     <div className="relative flex flex-col items-center justify-center inline-flex select-none">
@@ -51,12 +53,12 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(244, 241, 236, 0.07)"
+          stroke="rgba(255, 255, 255, 0.07)"
           strokeWidth={strokeWidth}
           fill="transparent"
         />
 
-        {/* Animated Progress circle */}
+        {/* Main Progress circle */}
         <motion.circle
           cx={size / 2}
           cy={size / 2}
@@ -70,6 +72,22 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
           strokeLinecap="round"
           fill="transparent"
         />
+
+        {/* Traveling Amber Liquid-Glass Glint Ring Overlay */}
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#FBBF24"
+          strokeWidth={strokeWidth * 0.8}
+          strokeDasharray={`${circumference * 0.25} ${circumference * 0.75}`}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: [circumference, 0] }}
+          transition={{ duration: 1.2, ease: 'easeInOut', delay: 0.4 }}
+          strokeLinecap="round"
+          fill="transparent"
+          opacity={0.7}
+        />
       </svg>
 
       {/* Center overlay content */}
@@ -81,18 +99,18 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
             <motion.span
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className={`font-serif font-extrabold tracking-tight ${colors.text}`}
+              className={`font-display font-extrabold tracking-tight ${colors.text}`}
               style={{ fontSize: size * 0.28 }}
             >
               {Math.round(value)}
             </motion.span>
             {label && (
-              <span className="text-[10px] font-bold text-[#A8A29B] uppercase tracking-widest mt-0.5">
+              <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mt-0.5">
                 {label}
               </span>
             )}
             {sublabel && (
-              <span className="text-[10px] text-[#635E58] mt-0.5">{sublabel}</span>
+              <span className="text-[10px] text-[#64748B] mt-0.5">{sublabel}</span>
             )}
           </>
         )}
