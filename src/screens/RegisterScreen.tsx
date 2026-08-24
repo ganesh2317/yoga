@@ -42,7 +42,7 @@ export const RegisterScreen: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 max-w-md mx-auto relative z-10">
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-tr from-accent-green to-accent-emerald shadow-green-glow mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-400 shadow-sage-glow mb-4">
           <span className="font-display font-extrabold text-bg-darkest text-3xl">Y</span>
         </div>
         <h1 className="font-display font-extrabold text-3xl text-text-primary tracking-tight">
@@ -53,10 +53,10 @@ export const RegisterScreen: React.FC = () => {
         </p>
       </div>
 
-      <GlassCard className="w-full p-6 sm:p-8">
+      <GlassCard variant="focal" className="w-full p-6 sm:p-8 space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-text-tertiary uppercase tracking-widest mb-2">
               Full Name
             </label>
             <div className="relative">
@@ -66,13 +66,13 @@ export const RegisterScreen: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Aria Sharma"
-                className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-green focus:ring-1 focus:ring-accent-green transition-all"
+                className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-text-tertiary uppercase tracking-widest mb-2">
               Email Address
             </label>
             <div className="relative">
@@ -82,13 +82,13 @@ export const RegisterScreen: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="aria@example.com"
-                className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-green focus:ring-1 focus:ring-accent-green transition-all"
+                className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-text-tertiary uppercase tracking-widest mb-2">
               Password
             </label>
             <div className="relative">
@@ -98,7 +98,7 @@ export const RegisterScreen: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="At least 6 characters"
-                className="w-full pl-11 pr-11 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-green focus:ring-1 focus:ring-accent-green transition-all"
+                className="w-full pl-11 pr-11 py-3 rounded-xl bg-white/[0.04] border border-white/12 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage transition-all"
               />
               <button
                 type="button"
@@ -111,7 +111,7 @@ export const RegisterScreen: React.FC = () => {
           </div>
 
           {(validationError || error) && (
-            <div className="p-3 rounded-xl bg-status-poor/15 border border-status-poor/30 text-red-300 text-xs font-medium">
+            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium">
               {validationError || error}
             </div>
           )}

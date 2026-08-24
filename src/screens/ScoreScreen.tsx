@@ -49,9 +49,8 @@ export const ScoreScreen: React.FC = () => {
 
   const scoreLabel =
     averageScore >= 88 ? 'Great Form!' : averageScore >= 75 ? 'Good Alignment' : 'Needs Practice';
-  const colorScheme = averageScore >= 85 ? 'green' : averageScore >= 65 ? 'amber' : 'red';
+  const colorScheme = averageScore >= 85 ? 'sage' : averageScore >= 65 ? 'amber' : 'red';
 
-  // Last 7 sessions for Recharts line chart
   const last7Data = sessions.slice(0, 7).reverse().map((s, idx) => ({
     name: `S${idx + 1}`,
     score: s.averageScore,
@@ -71,7 +70,7 @@ export const ScoreScreen: React.FC = () => {
       <TopBar title="Posture Score" showBack onBack={() => navigate('/home')} />
 
       {/* Main Score Hero Card */}
-      <GlassCard variant="glow" glowColor={colorScheme} className="p-6 text-center relative space-y-4">
+      <GlassCard variant="focal" glowColor={colorScheme} className="p-6 text-center relative space-y-4">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-bold text-text-secondary border border-white/15">
           <Award className="w-4 h-4 text-accent-emerald" />
           <span>{poseName} ({sanskritName})</span>
@@ -89,7 +88,7 @@ export const ScoreScreen: React.FC = () => {
                 value={averageScore}
                 className="font-display font-extrabold text-4xl text-accent-mint tracking-tight"
               />
-              <span className="text-xs font-bold text-text-secondary uppercase tracking-widest mt-1">
+              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-1">
                 Score / 100
               </span>
             </div>
@@ -97,7 +96,7 @@ export const ScoreScreen: React.FC = () => {
         </div>
 
         <div className="space-y-1">
-          <h2 className="font-display font-extrabold text-2xl text-text-primary tracking-tight">
+          <h2 className="font-display font-extrabold text-3xl text-text-primary tracking-tight">
             {scoreLabel}
           </h2>
           <p className="text-xs text-text-secondary">
@@ -105,7 +104,7 @@ export const ScoreScreen: React.FC = () => {
           </p>
         </div>
 
-        <div className="pt-3 border-t border-white/10 flex items-center justify-center gap-2">
+        <div className="pt-3 border-t border-white/10 flex items-center justify-center gap-3">
           <StatusBadge
             status={averageScore >= 85 ? 'Good' : averageScore >= 65 ? 'Slight' : 'Poor'}
           />
@@ -117,7 +116,7 @@ export const ScoreScreen: React.FC = () => {
 
       {/* Category Breakdown Bars */}
       <div className="space-y-3">
-        <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+        <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-widest">
           Alignment Breakdown
         </h3>
         <GlassCard className="p-4 space-y-3.5">
@@ -128,15 +127,14 @@ export const ScoreScreen: React.FC = () => {
                 <span className="font-bold text-accent-emerald">{item.score}%</span>
               </div>
 
-              {/* Progress track */}
               <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ${
                     item.score >= 85
-                      ? 'bg-gradient-to-r from-accent-green to-accent-emerald'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
                       : item.score >= 65
                       ? 'bg-amber-400'
-                      : 'bg-red-400'
+                      : 'bg-rose-500'
                   }`}
                   style={{ width: `${item.score}%` }}
                 />
@@ -146,10 +144,10 @@ export const ScoreScreen: React.FC = () => {
         </GlassCard>
       </div>
 
-      {/* Score Trend (Last 7 Sessions) Recharts Line Chart */}
+      {/* Score Trend (Last 7 Sessions) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-widest">
             Score Trend (Last 7 Sessions)
           </h3>
           <span className="text-[11px] text-text-tertiary">Recent progress</span>
@@ -158,31 +156,31 @@ export const ScoreScreen: React.FC = () => {
         <GlassCard className="p-4 h-48">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={last7Data}>
-              <XAxis dataKey="name" stroke="#5B6472" fontSize={11} tickLine={false} />
-              <YAxis domain={[50, 100]} stroke="#5B6472" fontSize={11} tickLine={false} />
+              <XAxis dataKey="name" stroke="#64748B" fontSize={11} tickLine={false} />
+              <YAxis domain={[50, 100]} stroke="#64748B" fontSize={11} tickLine={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#0F1620',
-                  borderColor: 'rgba(255,255,255,0.2)',
+                  backgroundColor: '#0D131C',
+                  borderColor: 'rgba(255,255,255,0.18)',
                   borderRadius: '12px',
-                  color: '#F5F7FA',
+                  color: '#F8FAFC',
                   fontSize: '12px',
                 }}
               />
               <Line
                 type="monotone"
                 dataKey="score"
-                stroke="#22C55E"
+                stroke="#10B981"
                 strokeWidth={3}
                 dot={{ fill: '#34D399', r: 5 }}
-                activeDot={{ r: 8, fill: '#A7F3D0' }}
+                activeDot={{ r: 8, fill: '#6EE7B7' }}
               />
             </LineChart>
           </ResponsiveContainer>
         </GlassCard>
       </div>
 
-      {/* CTA Button to Personalized Feedback */}
+      {/* CTA Button to Feedback */}
       <div className="pt-2">
         <GlassButton
           onClick={() => navigate(`/feedback/${session.id}`)}

@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   BookOpen,
-  Calendar,
+  Camera,
   ChevronRight,
   Flame,
   History as HistoryIcon,
-  Play,
   Sparkles,
   TrendingUp,
-  User,
 } from 'lucide-react';
 import { CircularProgressRing } from '../components/CircularProgressRing';
 import { GlassButton } from '../components/GlassButton';
@@ -25,7 +23,6 @@ export const HomeScreen: React.FC = () => {
   const { user } = useAuthStore();
   const { todayMinutes, streak, sessions, getLastSession } = useSessionStore();
 
-  // Compute dynamic greeting based on local time
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning';
@@ -37,199 +34,198 @@ export const HomeScreen: React.FC = () => {
   const dailyGoal = user?.dailyGoalMinutes || 20;
   const lastSession = getLastSession();
 
-  const QUICK_ACTIONS = [
-    {
-      id: 'library',
-      title: 'Pose Library',
-      desc: 'Explore 8 poses',
-      icon: BookOpen,
-      color: 'from-emerald-500/20 to-teal-500/10 text-emerald-300 border-emerald-500/30',
-      path: '/library',
-    },
-    {
-      id: 'history',
-      title: 'History',
-      desc: `${sessions.length} sessions logged`,
-      icon: HistoryIcon,
-      color: 'from-blue-500/20 to-cyan-500/10 text-blue-300 border-blue-500/30',
-      path: '/history',
-    },
-    {
-      id: 'progress',
-      title: 'Analytics',
-      desc: 'Score trends & graphs',
-      icon: TrendingUp,
-      color: 'from-purple-500/20 to-indigo-500/10 text-purple-300 border-purple-500/30',
-      path: '/progress',
-    },
-    {
-      id: 'profile',
-      title: 'Profile',
-      desc: 'Goals & preferences',
-      icon: User,
-      color: 'from-amber-500/20 to-orange-500/10 text-amber-300 border-amber-500/30',
-      path: '/profile',
-    },
-  ];
-
   return (
-    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">
+    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-6">
       <TopBar />
 
-      {/* Greeting Banner */}
+      {/* Asymmetric Header Greeting */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="flex items-end justify-between pt-1"
       >
         <div>
-          <h2 className="font-display font-extrabold text-2xl text-text-primary tracking-tight">
+          <span className="text-[11px] font-bold text-accent-mint uppercase tracking-widest block mb-1">
+            Personal Practice
+          </span>
+          <h2 className="font-display font-extrabold text-3xl text-text-primary tracking-tight">
             {getGreeting()}, <span className="text-accent-emerald">{userName}</span>
           </h2>
-          <p className="text-xs text-text-secondary mt-0.5">
-            Ready to perfect your posture & alignment?
-          </p>
         </div>
 
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-orange-500/15 border border-orange-500/30 text-amber-300 text-xs font-bold shadow-green-glow">
-          <Flame className="w-4 h-4 text-orange-400 fill-orange-400" />
-          <span>{streak.currentStreak} Day Streak</span>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/12 border border-amber-500/25 text-amber-300 text-xs font-bold shadow-sm">
+          <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
+          <span>{streak.currentStreak}d Streak</span>
         </div>
       </motion.div>
 
-      {/* Hero Glass Card: Start Your Session */}
-      <GlassCard variant="glow" glowColor="green" className="p-6 relative">
-        <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-accent-green/10 blur-2xl pointer-events-none" />
-        <div className="flex items-start justify-between relative z-10">
-          <div className="space-y-2 max-w-[70%]">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent-green/20 text-accent-mint text-[11px] font-bold border border-accent-green/30">
-              <Sparkles className="w-3 h-3" /> Real-Time CV Assistant
+      {/* Asymmetric Hero Card: Start Session */}
+      <GlassCard variant="focal" glowColor="sage" className="p-6 relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="flex flex-col space-y-4 relative z-10">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-accent-mint text-xs font-bold border border-emerald-500/30">
+              <Sparkles className="w-3.5 h-3.5" /> Real-Time Vision Engine
             </span>
-            <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">
-              Start Posture Session
+            <span className="text-[11px] font-semibold text-text-tertiary">8 Reference Poses</span>
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="font-display font-extrabold text-2xl text-text-primary tracking-tight leading-snug">
+              Perfect Your Pose Form
             </h3>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Align your joints live in front of camera with instant feedback.
+              Align joints in real time with instant, encouraging plain-English feedback.
             </p>
           </div>
 
-          <GlassButton
-            onClick={() => navigate('/library')}
-            variant="primary"
-            size="lg"
-            className="rounded-full !p-4 shadow-xl shrink-0"
-          >
-            <Play className="w-6 h-6 fill-current" />
-          </GlassButton>
-        </div>
-
-        <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-text-tertiary">
-          <span>8 Poses available</span>
-          <button
-            onClick={() => navigate('/library')}
-            className="flex items-center gap-1 text-accent-emerald font-semibold hover:underline"
-          >
-            Select pose <ChevronRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-3 pt-2">
+            <GlassButton
+              onClick={() => navigate('/live')}
+              variant="primary"
+              size="md"
+              leftIcon={<Camera className="w-4 h-4" />}
+            >
+              Free Practice
+            </GlassButton>
+            <GlassButton
+              onClick={() => navigate('/library')}
+              variant="secondary"
+              size="md"
+              rightIcon={<ChevronRight className="w-4 h-4" />}
+            >
+              Pose Library
+            </GlassButton>
+          </div>
         </div>
       </GlassCard>
 
-      {/* Daily Progress & Habit Ring */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Today's Goal Ring */}
-        <GlassCard className="p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+      {/* Asymmetric Habit Section (One Glass Card + One Unboxed Minimal Card for Contrast) */}
+      <div className="grid grid-cols-5 gap-3">
+        {/* Today's Goal Ring (Focal 3-span card) */}
+        <GlassCard className="col-span-3 p-4 flex flex-col items-center justify-center text-center">
+          <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-widest mb-3">
             Today's Goal
           </span>
           <CircularProgressRing
             value={todayMinutes}
             max={dailyGoal}
-            size={110}
-            strokeWidth={8}
-            colorScheme="green"
+            size={120}
+            strokeWidth={9}
+            colorScheme="sage"
           >
-            <span className="font-display font-extrabold text-2xl text-accent-mint">
+            <span className="font-display font-extrabold text-3xl text-accent-mint">
               {todayMinutes}
             </span>
             <span className="text-[10px] font-medium text-text-secondary">/{dailyGoal} min</span>
           </CircularProgressRing>
-          <span className="text-[11px] text-text-tertiary mt-2">
-            {todayMinutes >= dailyGoal ? 'Goal completed! 🎉' : `${dailyGoal - todayMinutes} min remaining`}
+          <span className="text-[11px] text-text-tertiary mt-3 font-medium">
+            {todayMinutes >= dailyGoal ? 'Goal Completed 🎉' : `${dailyGoal - todayMinutes} mins remaining`}
           </span>
         </GlassCard>
 
-        {/* Lifetime Stats */}
-        <GlassCard className="p-4 flex flex-col justify-between">
-          <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-            Habit Overview
+        {/* Unboxed Lifetime Stats Panel (Sitting directly on background for contrast) */}
+        <div className="col-span-2 flex flex-col justify-between p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+          <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-widest">
+            Summary
           </span>
 
-          <div className="space-y-3 my-2">
+          <div className="space-y-3 my-1">
             <div>
-              <span className="text-xs text-text-tertiary">Total Sessions</span>
-              <p className="font-display font-bold text-xl text-text-primary">
-                {streak.totalSessions} <span className="text-xs font-normal text-text-secondary">logged</span>
+              <span className="text-[11px] text-text-tertiary block">Sessions</span>
+              <p className="font-display font-extrabold text-2xl text-text-primary">
+                {streak.totalSessions}
               </p>
             </div>
             <div>
-              <span className="text-xs text-text-tertiary">Total Minutes</span>
-              <p className="font-display font-bold text-xl text-accent-emerald">
-                {streak.totalMinutes} <span className="text-xs font-normal text-text-secondary">mins</span>
+              <span className="text-[11px] text-text-tertiary block">Total Time</span>
+              <p className="font-display font-extrabold text-2xl text-accent-emerald">
+                {streak.totalMinutes}<span className="text-xs text-text-secondary font-normal ml-0.5">m</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 text-[11px] text-text-tertiary pt-2 border-t border-white/10">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>Updated today</span>
-          </div>
-        </GlassCard>
-      </div>
-
-      {/* Quick Actions Grid */}
-      <div className="space-y-3">
-        <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-          Quick Navigation
-        </h3>
-        <div className="grid grid-cols-2 gap-3">
-          {QUICK_ACTIONS.map((action) => {
-            const Icon = action.icon;
-            return (
-              <GlassCard
-                key={action.id}
-                variant="interactive"
-                onClick={() => navigate(action.path)}
-                className="p-4 flex flex-col justify-between h-28"
-              >
-                <div
-                  className={`w-9 h-9 rounded-xl bg-gradient-to-br ${action.color} border flex items-center justify-center`}
-                >
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-display font-bold text-sm text-text-primary leading-tight">
-                    {action.title}
-                  </h4>
-                  <p className="text-[11px] text-text-tertiary mt-0.5">{action.desc}</p>
-                </div>
-              </GlassCard>
-            );
-          })}
+          <span className="text-[10px] text-text-tertiary">Updated live</span>
         </div>
       </div>
 
-      {/* Recent Session Preview */}
+      {/* Quick Navigation Cards */}
+      <div className="space-y-3">
+        <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-widest">
+          Quick Actions
+        </h3>
+        <div className="grid grid-cols-2 gap-3">
+          <GlassCard
+            variant="interactive"
+            onClick={() => navigate('/library')}
+            className="p-4 flex flex-col justify-between h-28"
+          >
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-accent-mint flex items-center justify-center">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-sm text-text-primary">Pose Library</h4>
+              <p className="text-[11px] text-text-tertiary mt-0.5">8 Reference Poses</p>
+            </div>
+          </GlassCard>
+
+          <GlassCard
+            variant="interactive"
+            onClick={() => navigate('/live')}
+            className="p-4 flex flex-col justify-between h-28 border-emerald-500/30 bg-emerald-950/10"
+          >
+            <div className="w-9 h-9 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-300 flex items-center justify-center">
+              <Camera className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-sm text-text-primary">Auto Detect</h4>
+              <p className="text-[11px] text-text-tertiary mt-0.5">Free Practice Mode</p>
+            </div>
+          </GlassCard>
+
+          <GlassCard
+            variant="interactive"
+            onClick={() => navigate('/progress')}
+            className="p-4 flex flex-col justify-between h-28"
+          >
+            <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-sm text-text-primary">Analytics</h4>
+              <p className="text-[11px] text-text-tertiary mt-0.5">Score Trends & Charts</p>
+            </div>
+          </GlassCard>
+
+          <GlassCard
+            variant="interactive"
+            onClick={() => navigate('/history')}
+            className="p-4 flex flex-col justify-between h-28"
+          >
+            <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center">
+              <HistoryIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-sm text-text-primary">History</h4>
+              <p className="text-[11px] text-text-tertiary mt-0.5">{sessions.length} Logged</p>
+            </div>
+          </GlassCard>
+        </div>
+      </div>
+
+      {/* Recent Practice Card */}
       {lastSession && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Recent Practice
+            <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-widest">
+              Last Session
             </h3>
             <button
               onClick={() => navigate('/history')}
               className="text-xs text-accent-emerald font-semibold hover:underline"
             >
-              View all
+              View history
             </button>
           </div>
 
@@ -238,8 +234,8 @@ export const HomeScreen: React.FC = () => {
             onClick={() => navigate(`/score/${lastSession.id}`)}
             className="p-4 flex items-center justify-between"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center font-display font-extrabold text-accent-emerald text-lg">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center font-display font-extrabold text-accent-mint text-lg">
                 {lastSession.averageScore}
               </div>
               <div>

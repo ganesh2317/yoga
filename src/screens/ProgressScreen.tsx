@@ -16,7 +16,6 @@ import { useSessionStore } from '../store/useSessionStore';
 export const ProgressScreen: React.FC = () => {
   const { sessions, streak } = useSessionStore();
 
-  // Pose frequency distribution
   const poseCounts: Record<string, number> = {};
   sessions.forEach((s) => {
     poseCounts[s.poseName] = (poseCounts[s.poseName] || 0) + 1;
@@ -27,7 +26,6 @@ export const ProgressScreen: React.FC = () => {
     count,
   }));
 
-  // Score progress over time
   const timeChartData = sessions
     .slice(0, 10)
     .reverse()
@@ -43,59 +41,73 @@ export const ProgressScreen: React.FC = () => {
       : 85;
 
   return (
-    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">
+    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-6">
       <TopBar title="Analytics & Progress" />
 
-      {/* Progress Metric Highlights */}
-      <div className="grid grid-cols-2 gap-3">
-        <GlassCard className="p-4 space-y-1">
-          <span className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
+      {/* Asymmetric Header Metric Cards */}
+      <div className="grid grid-cols-5 gap-3">
+        <GlassCard variant="focal" className="col-span-3 p-5 space-y-1">
+          <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-widest block">
             Average Score
           </span>
-          <p className="font-display font-extrabold text-3xl text-accent-mint">{avgScore}</p>
-          <span className="text-[11px] text-text-secondary">Across {sessions.length} sessions</span>
+          <p className="font-display font-extrabold text-4xl text-accent-mint tracking-tight">
+            {avgScore}
+          </p>
+          <span className="text-xs text-text-secondary block pt-1">
+            Across {sessions.length} logged sessions
+          </span>
         </GlassCard>
 
-        <GlassCard className="p-4 space-y-1">
-          <span className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
-            Total Practice
+        {/* Unboxed side stat for contrast */}
+        <div className="col-span-2 p-4 rounded-2xl bg-white/[0.025] border border-white/[0.06] flex flex-col justify-between">
+          <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-widest">
+            Total Time
           </span>
-          <p className="font-display font-extrabold text-3xl text-accent-emerald">
-            {streak.totalMinutes} <span className="text-sm font-normal text-text-secondary">min</span>
-          </p>
-          <span className="text-[11px] text-text-secondary">{streak.currentStreak} day streak</span>
-        </GlassCard>
+          <div>
+            <p className="font-display font-extrabold text-2xl text-accent-emerald">
+              {streak.totalMinutes}<span className="text-xs text-text-secondary font-normal ml-0.5">m</span>
+            </p>
+            <span className="text-[11px] text-amber-300 font-semibold block mt-0.5">
+              {streak.currentStreak}d streak
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Score Progress Trend Graph */}
+      {/* Main Score Trajectory Wide Area Chart */}
       <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-          Score Trajectory
-        </h3>
-        <GlassCard className="p-4 h-52">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-widest">
+            Score Trajectory (Last 10 Sessions)
+          </h3>
+          <span className="text-[11px] text-accent-emerald font-semibold">Live Trend</span>
+        </div>
+
+        <GlassCard className="p-4 h-56">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={timeChartData}>
               <defs>
                 <linearGradient id="scoreColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22C55E" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="index" stroke="#5B6472" fontSize={11} tickLine={false} />
-              <YAxis domain={[40, 100]} stroke="#5B6472" fontSize={11} tickLine={false} />
+              <XAxis dataKey="index" stroke="#64748B" fontSize={11} tickLine={false} />
+              <YAxis domain={[40, 100]} stroke="#64748B" fontSize={11} tickLine={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#0F1620',
-                  borderColor: 'rgba(255,255,255,0.2)',
-                  borderRadius: '12px',
-                  color: '#F5F7FA',
+                  backgroundColor: '#0D131C',
+                  borderColor: 'rgba(255,255,255,0.18)',
+                  borderRadius: '14px',
+                  color: '#F8FAFC',
                   fontSize: '12px',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                 }}
               />
               <Area
                 type="monotone"
                 dataKey="score"
-                stroke="#22C55E"
+                stroke="#10B981"
                 strokeWidth={3}
                 fillOpacity={1}
                 fill="url(#scoreColor)"
@@ -107,25 +119,25 @@ export const ProgressScreen: React.FC = () => {
 
       {/* Pose Frequency Distribution Chart */}
       <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-          Pose Frequency Distribution
+        <h3 className="text-xs font-bold text-text-tertiary uppercase tracking-widest">
+          Pose Distribution Breakdown
         </h3>
         <GlassCard className="p-4 h-52">
           {poseChartData.length === 0 ? (
             <div className="h-full flex items-center justify-center text-xs text-text-tertiary">
-              Complete sessions to view pose frequency breakdown
+              Complete practice sessions to view pose distribution
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={poseChartData}>
-                <XAxis dataKey="name" stroke="#5B6472" fontSize={10} tickLine={false} />
-                <YAxis allowDecimals={false} stroke="#5B6472" fontSize={11} tickLine={false} />
+                <XAxis dataKey="name" stroke="#64748B" fontSize={10} tickLine={false} />
+                <YAxis allowDecimals={false} stroke="#64748B" fontSize={11} tickLine={false} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0F1620',
-                    borderColor: 'rgba(255,255,255,0.2)',
-                    borderRadius: '12px',
-                    color: '#F5F7FA',
+                    backgroundColor: '#0D131C',
+                    borderColor: 'rgba(255,255,255,0.18)',
+                    borderRadius: '14px',
+                    color: '#F8FAFC',
                     fontSize: '12px',
                   }}
                 />

@@ -2,13 +2,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 interface CircularProgressRingProps {
-  value: number; // 0 to 100 or current metric
-  max?: number; // default 100
-  size?: number; // diameter in px
+  value: number;
+  max?: number;
+  size?: number;
   strokeWidth?: number;
   label?: string;
   sublabel?: string;
-  colorScheme?: 'green' | 'amber' | 'red' | 'emerald';
+  colorScheme?: 'sage' | 'emerald' | 'amber' | 'red';
   children?: React.ReactNode;
 }
 
@@ -19,7 +19,7 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
   strokeWidth = 10,
   label,
   sublabel,
-  colorScheme = 'green',
+  colorScheme = 'sage',
   children,
 }) => {
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
@@ -28,20 +28,20 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   const colors = {
-    green: { stroke: '#22C55E', glow: 'rgba(34, 197, 94, 0.35)', text: 'text-accent-green' },
-    emerald: { stroke: '#34D399', glow: 'rgba(52, 211, 153, 0.35)', text: 'text-accent-emerald' },
-    amber: { stroke: '#F59E0B', glow: 'rgba(245, 158, 11, 0.35)', text: 'text-status-slight' },
-    red: { stroke: '#EF4444', glow: 'rgba(239, 68, 68, 0.35)', text: 'text-status-poor' },
+    sage: { stroke: '#10B981', glow: 'rgba(16, 185, 129, 0.28)', text: 'text-accent-mint' },
+    emerald: { stroke: '#34D399', glow: 'rgba(52, 211, 153, 0.28)', text: 'text-accent-emerald' },
+    amber: { stroke: '#F59E0B', glow: 'rgba(245, 158, 11, 0.28)', text: 'text-accent-warm' },
+    red: { stroke: '#F43F5E', glow: 'rgba(244, 63, 94, 0.28)', text: 'text-rose-400' },
   }[colorScheme];
 
   return (
     <div className="relative flex flex-col items-center justify-center inline-flex select-none">
-      {/* Background ambient glow behind ring */}
+      {/* Soft background ambient glow */}
       <div
         className="absolute rounded-full blur-xl pointer-events-none transition-all duration-500"
         style={{
-          width: size * 0.7,
-          height: size * 0.7,
+          width: size * 0.75,
+          height: size * 0.75,
           backgroundColor: colors.glow,
         }}
       />
@@ -52,12 +52,12 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255, 255, 255, 0.08)"
+          stroke="rgba(255, 255, 255, 0.07)"
           strokeWidth={strokeWidth}
           fill="transparent"
         />
 
-        {/* Progress animated circle */}
+        {/* Animated Progress circle */}
         <motion.circle
           cx={size / 2}
           cy={size / 2}
@@ -67,7 +67,7 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ type: 'spring', stiffness: 120, damping: 20 }}
           strokeLinecap="round"
           fill="transparent"
         />
@@ -82,13 +82,13 @@ export const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
             <motion.span
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className={`font-display font-extrabold ${colors.text}`}
+              className={`font-display font-extrabold tracking-tight ${colors.text}`}
               style={{ fontSize: size * 0.28 }}
             >
               {Math.round(value)}
             </motion.span>
             {label && (
-              <span className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mt-0.5">
+              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-0.5">
                 {label}
               </span>
             )}

@@ -3,7 +3,7 @@ import { motion, type HTMLMotionProps } from 'framer-motion';
 
 interface GlassButtonProps extends HTMLMotionProps<'button'> {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'warm' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   isLoading?: boolean;
@@ -26,25 +26,28 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
   ...props
 }) => {
   const sizeStyles = {
-    sm: 'px-3 py-1.5 text-xs rounded-xl font-medium gap-1.5',
-    md: 'px-5 py-2.5 text-sm rounded-xl font-semibold gap-2',
-    lg: 'px-6 py-3.5 text-base rounded-2xl font-bold gap-2.5',
+    sm: 'px-3.5 py-1.5 text-xs rounded-xl font-semibold gap-1.5',
+    md: 'px-5 py-2.5 text-sm rounded-xl font-bold gap-2',
+    lg: 'px-6 py-3.5 text-base rounded-2xl font-extrabold gap-2.5',
   }[size];
 
   const variantStyles = {
     primary:
-      'bg-gradient-to-r from-accent-green to-accent-emerald text-bg-darkest font-bold shadow-lg shadow-accent-green/25 hover:shadow-accent-green/40 hover:brightness-110 active:scale-95 border border-emerald-400/30',
+      'bg-gradient-to-r from-emerald-500 to-teal-400 text-bg-darkest font-extrabold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/35 hover:brightness-105 active:scale-95 border border-emerald-300/40',
     secondary:
-      'bg-white/10 text-text-primary border border-white/20 backdrop-blur-lg hover:bg-white/15 hover:border-white/30 active:scale-95 shadow-glass-glow',
+      'bg-white/10 text-text-primary border border-white/18 backdrop-blur-xl hover:bg-white/15 hover:border-white/25 active:scale-95 shadow-glass-subtle',
+    warm:
+      'bg-gradient-to-r from-amber-500 to-orange-400 text-bg-darkest font-extrabold shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:brightness-105 active:scale-95 border border-amber-300/40',
     ghost:
       'bg-transparent text-text-secondary hover:text-text-primary hover:bg-white/5 active:scale-95 border border-transparent',
     danger:
-      'bg-status-poor/20 text-red-200 border border-status-poor/40 hover:bg-status-poor/30 active:scale-95 shadow-red-glow',
+      'bg-status-poor/20 text-rose-200 border border-status-poor/40 hover:bg-status-poor/30 active:scale-95 shadow-red-glow',
   }[variant];
 
   return (
     <motion.button
-      whileTap={{ scale: disabled || isLoading ? 1 : 0.97 }}
+      whileTap={{ scale: disabled || isLoading ? 1 : 0.96 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       disabled={disabled || isLoading}
       className={`inline-flex items-center justify-center transition-all duration-200 ${
         fullWidth ? 'w-full' : ''

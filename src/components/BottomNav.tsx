@@ -13,7 +13,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'home', label: 'Home', path: '/home', icon: Home },
   { id: 'library', label: 'Library', path: '/library', icon: BookOpen },
-  { id: 'live', label: 'Live', path: '/library', icon: Camera }, // clicking live opens library to pick pose or defaults
+  { id: 'live', label: 'Live', path: '/live', icon: Camera },
   { id: 'progress', label: 'Progress', path: '/progress', icon: TrendingUp },
   { id: 'profile', label: 'Profile', path: '/profile', icon: User },
 ];
@@ -22,12 +22,12 @@ export const BottomNav: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Determine current active tab
   const getActiveTab = () => {
     const path = location.pathname;
+    if (path === '/live') return 'live';
     if (path.startsWith('/home')) return 'home';
     if (path.startsWith('/library')) return 'library';
-    if (path.startsWith('/live')) return 'live';
+    if (path.startsWith('/live/')) return 'live';
     if (path.startsWith('/progress') || path.startsWith('/history')) return 'progress';
     if (path.startsWith('/profile')) return 'profile';
     return 'home';
@@ -37,7 +37,7 @@ export const BottomNav: React.FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 p-4 max-w-md mx-auto pointer-events-none">
-      <div className="pointer-events-auto rounded-3xl bg-bg-surface/80 border border-white/12 backdrop-blur-2xl shadow-glass-glow p-1.5 flex items-center justify-around">
+      <div className="pointer-events-auto rounded-3xl bg-[#0D131C]/85 border border-white/12 backdrop-blur-2xl shadow-glass-glow p-1.5 flex items-center justify-around">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -53,8 +53,8 @@ export const BottomNav: React.FC = () => {
               {isActive && (
                 <motion.div
                   layoutId="activeTabPill"
-                  className="absolute inset-0 bg-gradient-to-r from-accent-green to-accent-emerald rounded-2xl shadow-md shadow-accent-green/30"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-2xl shadow-md shadow-emerald-500/25"
+                  transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                 />
               )}
               <span className="relative z-10 flex flex-col items-center gap-0.5">

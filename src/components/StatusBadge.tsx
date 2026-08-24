@@ -19,47 +19,47 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   const styles: Record<string, { bg: string; text: string; border: string; dot: string }> = {
     Good: {
-      bg: 'bg-accent-green/15',
-      text: 'text-accent-mint',
-      border: 'border-accent-green/30',
-      dot: 'bg-accent-green shadow-[0_0_8px_rgba(34,197,94,0.6)]',
+      bg: 'bg-emerald-500/15',
+      text: 'text-emerald-300',
+      border: 'border-emerald-500/30',
+      dot: 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
     },
     Slight: {
-      bg: 'bg-status-slight/15',
+      bg: 'bg-amber-500/15',
       text: 'text-amber-300',
-      border: 'border-status-slight/30',
-      dot: 'bg-status-slight shadow-[0_0_8px_rgba(245,158,11,0.6)]',
+      border: 'border-amber-500/30',
+      dot: 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]',
     },
     Poor: {
-      bg: 'bg-status-poor/15',
-      text: 'text-red-300',
-      border: 'border-status-poor/30',
-      dot: 'bg-status-poor shadow-[0_0_8px_rgba(239,68,68,0.6)]',
+      bg: 'bg-rose-500/15',
+      text: 'text-rose-300',
+      border: 'border-rose-500/30',
+      dot: 'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.5)]',
     },
     Beginner: {
-      bg: 'bg-teal-500/15',
+      bg: 'bg-teal-500/12',
       text: 'text-teal-300',
-      border: 'border-teal-500/30',
+      border: 'border-teal-500/25',
       dot: 'bg-teal-400',
     },
     Intermediate: {
-      bg: 'bg-blue-500/15',
-      text: 'text-blue-300',
-      border: 'border-blue-500/30',
-      dot: 'bg-blue-400',
+      bg: 'bg-indigo-500/12',
+      text: 'text-indigo-300',
+      border: 'border-indigo-500/25',
+      dot: 'bg-indigo-400',
     },
     Advanced: {
-      bg: 'bg-purple-500/15',
+      bg: 'bg-purple-500/12',
       text: 'text-purple-300',
-      border: 'border-purple-500/30',
+      border: 'border-purple-500/25',
       dot: 'bg-purple-400',
     },
   };
 
   const current = styles[status] || {
-    bg: 'bg-white/10',
+    bg: 'bg-white/8',
     text: 'text-text-secondary',
-    border: 'border-white/15',
+    border: 'border-white/12',
     dot: 'bg-text-secondary',
   };
 

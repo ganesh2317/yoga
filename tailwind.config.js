@@ -8,30 +8,33 @@ export default {
     extend: {
       colors: {
         bg: {
-          darkest: "#0B0F14",
-          surface: "#0F1620",
-          card: "rgba(255, 255, 255, 0.06)",
+          darkest: "#090D12", // Warmer, premium dark charcoal
+          surface: "#0D131C",
+          elevated: "#121924",
+          card: "rgba(255, 255, 255, 0.05)",
         },
         glass: {
-          fill: "rgba(255, 255, 255, 0.06)",
-          hover: "rgba(255, 255, 255, 0.09)",
-          border: "rgba(255, 255, 255, 0.12)",
-          highlight: "rgba(255, 255, 255, 0.18)",
+          fill: "rgba(255, 255, 255, 0.05)",
+          hover: "rgba(255, 255, 255, 0.08)",
+          border: "rgba(255, 255, 255, 0.10)",
+          highlight: "rgba(255, 255, 255, 0.16)",
         },
         accent: {
-          green: "#22C55E",
+          sage: "#10B981",    // Refined calm emerald/sage
           emerald: "#34D399",
-          mint: "#A7F3D0",
+          mint: "#6EE7B7",
+          warm: "#F59E0B",     // Secondary warm terracotta/amber contrast accent
+          rose: "#E11D48",
         },
         status: {
-          good: "#22C55E",
+          good: "#10B981",
           slight: "#F59E0B",
-          poor: "#EF4444",
+          poor: "#F43F5E",
         },
         text: {
-          primary: "#F5F7FA",
+          primary: "#F8FAFC",
           secondary: "#94A3B8",
-          tertiary: "#5B6472",
+          tertiary: "#64748B",
         }
       },
       fontFamily: {
@@ -39,24 +42,24 @@ export default {
         display: ['Manrope', 'sans-serif'],
       },
       boxShadow: {
-        'glass-glow': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-        'green-glow': '0 0 25px -5px rgba(34, 197, 94, 0.4)',
-        'amber-glow': '0 0 25px -5px rgba(245, 158, 11, 0.4)',
-        'red-glow': '0 0 25px -5px rgba(239, 68, 68, 0.4)',
+        'glass-subtle': '0 8px 32px 0 rgba(0, 0, 0, 0.28)',
+        'glass-glow': '0 12px 40px 0 rgba(0, 0, 0, 0.45)',
+        'sage-glow': '0 0 30px -5px rgba(16, 185, 129, 0.25)',
+        'warm-glow': '0 0 30px -5px rgba(245, 158, 11, 0.25)',
       },
       animation: {
-        'blob-slow': 'blobFloat 25s infinite ease-in-out',
-        'pulse-subtle': 'pulseSubtle 3s ease-in-out infinite',
+        'blob-slow': 'blobFloat 28s infinite ease-in-out',
+        'specular-shimmer': 'specularShimmer 8s ease-in-out infinite',
       },
       keyframes: {
         blobFloat: {
           '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
-          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-          '66%': { transform: 'translate(-20px, 20px) scale(0.95)' },
+          '33%': { transform: 'translate(25px, -35px) scale(1.08)' },
+          '66%': { transform: 'translate(-20px, 15px) scale(0.96)' },
         },
-        pulseSubtle: {
-          '0%, 100%': { opacity: 0.8, transform: 'scale(1)' },
-          '50%': { opacity: 1, transform: 'scale(1.03)' },
+        specularShimmer: {
+          '0%, 100%': { opacity: 0.3 },
+          '50%': { opacity: 0.7 },
         }
       }
     },
