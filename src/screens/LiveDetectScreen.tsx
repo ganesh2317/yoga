@@ -212,18 +212,27 @@ export const LiveDetectScreen: React.FC = () => {
     <div className="relative min-h-screen bg-bg-darkest overflow-hidden flex flex-col justify-between p-4 max-w-md mx-auto z-10">
       {/* Video Stream + Skeleton Viewport */}
       <div className="relative w-full h-[65vh] rounded-3xl overflow-hidden border border-white/15 bg-black/60 shadow-glass-glow flex items-center justify-center">
-        {/* Hidden / Active Video Element */}
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          className={`absolute inset-0 w-full h-full object-cover transform -scale-x-100 ${
-            cameraState === 'active' ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
+        {/* 
+          SINGLE MIRROR CONTAINER:
+          Mirrors both the video feed and skeleton canvas overlay together.
+          MediaPipe outputs anatomical landmarks (left_wrist = user's actual left arm).
+          By wrapping both video and canvas in scaleX(-1), anatomical landmarks align
+          perfectly with the selfie-mirrored display stream without needing coordinate
+          or label swaps downstream. DO NOT add another scaleX(-1) or flip elsewhere!
+        */}
+        <div className="absolute inset-0 w-full h-full transform -scale-x-100">
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className={`absolute inset-0 w-full h-full object-cover ${
+              cameraState === 'active' ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
 
-        {/* Skeleton Canvas Overlay */}
-        <SkeletonOverlayCanvas landmarks={landmarks} width={380} height={520} />
+          {/* Skeleton Canvas Overlay */}
+          <SkeletonOverlayCanvas landmarks={landmarks} width={380} height={520} />
+        </div>
 
         {/* Top HUD: FPS & Timer */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
