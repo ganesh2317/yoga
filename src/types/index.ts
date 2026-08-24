@@ -29,6 +29,8 @@ export interface YogaPose {
   difficulty: Difficulty;
   description: string;
   benefits: string[];
+  setupSteps: string[];
+  alignmentCues: string[];
   idealJointAngles: IdealJointAngles;
   thumbnailSvg?: string;
   estimatedCaloriesPerMin: number;

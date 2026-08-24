@@ -9,6 +9,16 @@ export const YOGA_POSES: YogaPose[] = [
     difficulty: 'Beginner',
     description: 'The foundation for all standing poses. Improves posture, grounds body weight evenly, and strengthens thighs, knees, and ankles.',
     benefits: ['Improves posture', 'Strengthens legs', 'Fosters calm focus', 'Aligns spine'],
+    setupSteps: [
+      'Stand tall with feet together or hip-width apart, grounding firmly into the floor.',
+      'Engage your thigh muscles, lift kneecaps gently, and keep your pelvis neutral.',
+      'Roll shoulders back and down, allowing arms to rest naturally with palms facing forward.',
+      'Lengthen upward through the crown of your head with soft, even breathing.',
+    ],
+    alignmentCues: [
+      'Distribute body weight evenly across both feet.',
+      'Keep spine tall, ribs soft, and shoulder blades drawn down.',
+    ],
     estimatedCaloriesPerMin: 3.5,
     idealJointAngles: {
       leftKnee: { name: 'Left Knee', targetAngle: 178, tolerance: 10 },
@@ -30,6 +40,16 @@ export const YOGA_POSES: YogaPose[] = [
     difficulty: 'Beginner',
     description: 'A classic single-leg balance pose that builds focus, opens the hips, and strengthens the standing leg and foot core.',
     benefits: ['Builds balance & poise', 'Strengthens ankles & calves', 'Opens hips', 'Enhances mental focus'],
+    setupSteps: [
+      'Stand tall in Mountain Pose with feet grounded and core engaged.',
+      'Shift your weight onto your right leg, keeping the standing knee soft and strong.',
+      'Place the sole of your left foot against your inner right thigh or calf (avoiding the knee).',
+      'Bring palms together at your chest or reach arms overhead with shoulders relaxed.',
+    ],
+    alignmentCues: [
+      'Keep standing leg strong and root firmly into the floor.',
+      'Keep hips level and open bent knee out to the side.',
+    ],
     estimatedCaloriesPerMin: 4.0,
     idealJointAngles: {
       leftKnee: { name: 'Standing Leg Knee', targetAngle: 176, tolerance: 10 },
@@ -49,6 +69,16 @@ export const YOGA_POSES: YogaPose[] = [
     difficulty: 'Intermediate',
     description: 'Deep side-stretch pose that opens hips, stretches hamstrings and shoulders, and improves core stability.',
     benefits: ['Stretches hips & spine', 'Opens chest & shoulders', 'Relieves back tightness'],
+    setupSteps: [
+      'Step your feet wide apart, about 3 to 4 feet.',
+      'Turn right foot out 90 degrees and left foot slightly inward.',
+      'Extend arms sideways parallel to the floor, reaching forward through right arm.',
+      'Hinge at right hip, lowering right hand toward shin while reaching left arm skyward.',
+    ],
+    alignmentCues: [
+      'Keep both legs straight and ground into outer edge of back foot.',
+      'Keep chest open and lengthen through both sides of torso.',
+    ],
     estimatedCaloriesPerMin: 4.5,
     idealJointAngles: {
       leftKnee: { name: 'Front Knee', targetAngle: 175, tolerance: 12 },
@@ -68,6 +98,16 @@ export const YOGA_POSES: YogaPose[] = [
     difficulty: 'Intermediate',
     description: 'A powerful lunging pose that builds stamina, opens hip flexors, and stretches arms, chest, and ankles.',
     benefits: ['Builds lower body power', 'Stretches hip flexors', 'Opens chest & lungs', 'Strengthens shoulders'],
+    setupSteps: [
+      'Step left leg back about 3.5 feet, turning left heel down at 45 degrees.',
+      'Bend front right knee until it sits over right ankle at a 90-degree angle.',
+      'Square hips and chest toward the front edge of your mat.',
+      'Reach arms overhead, palms facing each other with shoulders relaxed.',
+    ],
+    alignmentCues: [
+      'Press firmly through outer heel of back leg.',
+      'Keep front knee tracking over middle toe.',
+    ],
     estimatedCaloriesPerMin: 5.2,
     idealJointAngles: {
       leftKnee: { name: 'Front Lunge Knee', targetAngle: 95, tolerance: 15 },
@@ -87,6 +127,16 @@ export const YOGA_POSES: YogaPose[] = [
     difficulty: 'Beginner',
     description: 'Gentle prone backbend that rejuvenates the spine, expands chest cavity, and strengthens back extensors.',
     benefits: ['Strengthens spine', 'Stretches chest & abs', 'Relieves sciatica', 'Elevates energy'],
+    setupSteps: [
+      'Lie face down on mat with legs extended straight back, feet hip-width.',
+      'Place hands flat on floor beneath shoulders, elbows hugged into torso.',
+      'Press tops of feet and thighs firmly into the ground.',
+      'Inhale and gently lift chest off mat using back strength, elbows slightly bent.',
+    ],
+    alignmentCues: [
+      'Keep shoulders rolled back and away from ears.',
+      'Distribute backbend evenly along lumbar and thoracic spine.',
+    ],
     estimatedCaloriesPerMin: 3.8,
     idealJointAngles: {
       leftElbow: { name: 'Left Elbow Bend', targetAngle: 135, tolerance: 25 },
@@ -104,6 +154,16 @@ export const YOGA_POSES: YogaPose[] = [
     difficulty: 'Intermediate',
     description: 'Essential inverted pose that elongates the spine, stretches hamstrings and calves, and tones arms.',
     benefits: ['Elongates hamstrings & spine', 'Builds upper body strength', 'Boosts blood circulation'],
+    setupSteps: [
+      'Start on hands and knees, hands slightly forward of shoulders.',
+      'Spread fingers wide and press firmly into knuckles.',
+      'Exhale and lift knees, pressing hips up and back to form an inverted V shape.',
+      'Press heels toward mat while maintaining a long, neutral spine.',
+    ],
+    alignmentCues: [
+      'Press firmly into knuckles and palms to relieve wrist strain.',
+      'Keep spine long and head relaxed between upper arms.',
+    ],
     estimatedCaloriesPerMin: 4.8,
     idealJointAngles: {
       leftElbow: { name: 'Left Arm Extension', targetAngle: 175, tolerance: 10 },
@@ -123,6 +183,16 @@ export const YOGA_POSES: YogaPose[] = [
     difficulty: 'Beginner',
     description: 'Supine hip-elevation pose that opens chest, neck, and spine while building glute and hamstring strength.',
     benefits: ['Stretches chest, neck & spine', 'Strengthens glutes & hamstrings', 'Calms the brain'],
+    setupSteps: [
+      'Lie on back with knees bent and feet flat on floor, hip-width apart.',
+      'Place arms alongside body, palms down, with heels close to sitting bones.',
+      'Press into feet and arms to lift hips skyward toward ceiling.',
+      'Optionally interlace fingers underneath back, opening chest fully.',
+    ],
+    alignmentCues: [
+      'Keep knees parallel over ankles, avoiding splaying outwards.',
+      'Engage glutes and hamstrings to lift pelvis evenly.',
+    ],
     estimatedCaloriesPerMin: 4.2,
     idealJointAngles: {
       leftKnee: { name: 'Left Knee Bend', targetAngle: 90, tolerance: 15 },
@@ -140,6 +210,16 @@ export const YOGA_POSES: YogaPose[] = [
     difficulty: 'Advanced',
     description: 'Meditative cross-legged pose promoting deep spine alignment, hip flexibility, and peaceful concentration.',
     benefits: ['Deep hip flexibility', 'Calms nerve system', 'Encourages erect posture', 'Facilitates breathing'],
+    setupSteps: [
+      'Sit upright on mat with legs extended forward in staff pose.',
+      'Bend right knee, draw right foot toward torso, and place sole over left thigh crease.',
+      'Bend left knee, gently lift left foot, and place over right thigh crease.',
+      'Rest wrists on knees with spine straight, chest open, and shoulders relaxed.',
+    ],
+    alignmentCues: [
+      'Keep spine erect and crown of head reaching high.',
+      'Release hip flexors and breathe steadily into belly.',
+    ],
     estimatedCaloriesPerMin: 2.5,
     idealJointAngles: {
       leftKnee: { name: 'Left Folded Knee', targetAngle: 40, tolerance: 18 },
