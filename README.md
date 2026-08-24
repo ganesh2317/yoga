@@ -1,31 +1,52 @@
-# YogaSense AI — Master Build (Round 2 Refined)
+# YogaSense AI — Master Build (Round 3 Refined)
 
-**YogaSense AI** is an AI-driven yoga posture assistant web application. It uses a device camera to detect body joints in real-time using MediaPipe, compares joint angles against ideal reference targets for yoga poses, scores alignment, and translates technical deviations into encouraging, plain-English corrective feedback.
+**YogaSense AI** is a client-side AI-driven posture assistant and guided yoga practice application. Built with React 18, TypeScript, Vite, Tailwind CSS, MediaPipe, and Fraunces serif typography, it provides real-time body tracking, posture scoring, auto pose recognition, and detailed posture reference guides.
 
 ---
 
-## 🌟 Key Features & Refinements
+## 🌟 Key Features & Refinement Rounds
 
-- **Single-Source Mirror Container**: Fixed left/right landmark alignment by mirroring the video and canvas overlay together in a single container. MediaPipe anatomical landmarks (`left_wrist`, `right_knee`) map 100% accurately to the selfie-mirrored display stream without needing coordinate or string swaps downstream.
-- **Free Practice & Auto Pose Recognition (`/live`)**: Real-time auto-matching engine continuously scores current user joint angles against every pose in the reference dataset. Surfacing a smooth prompt when a pose is sustained for ~1.5 seconds to start a tracked session.
-- **Crafted Liquid Glass Design System**: Deep dark charcoal base (`#090D12`), refined sage/emerald primary accent (`#10B981`), warm amber secondary contrast (`#F59E0B`), specular edge highlights, subtle noise grain texture, and damped spring motion physics.
-- **Client-Side Computer Vision Pipeline**: Powered by `@mediapipe/tasks-vision` (PoseLandmarker) running 33-point body landmark detection via WASM and GPU delegates.
-- **Real 3D/2D Geometry Engine**: `poseGeometry.ts` uses vector trigonometry (dot product angle calculations) to measure joint angles at knees, elbows, shoulders, hips, and spine alignment.
-- **Rule-Based Posture Scoring**: `scoreEngine.ts` calculates exact joint angle deviations, sub-scores (0–100), joint classifications (Good / Slight / Poor), and category breakdown bars (Shoulder, Hip, Knee, Torso, Balance).
-- **Personalized Plain-English Feedback**: `feedbackEngine.ts` maps technical joint deviations to warm, encouraging corrective tips and positive reinforcement.
-- **Web Speech API Text-to-Speech (TTS)**: Built-in natural audio feedback reader for accessibility and hands-free guidance.
-- **Local Persistence & Auth**: Self-contained client-side authentication and session logging built on IndexedDB (`idb`) and Web Crypto API.
-- **Habit & Analytics Dashboard**: Dynamic streak tracker, daily goal progress ring, session history log, and Recharts progress line/bar charts.
+- **Pose Reference Guide & Setup Steps (Round 3)**:
+  - Sequential 3–5 step instructions (`setupSteps`) and key form cues (`alignmentCues`) for all 8 reference poses.
+  - Parameterized SVG line-art pose illustrations (`PoseReferenceIllustration.tsx`) showing exact target body shapes.
+  - Pre-tracking "Get Ready" screen on `/live/:poseId` allowing users to study position before scoring starts.
+  - Collapsible mid-session pose reference panel and horizontally-scrollable reference drawer in Free Practice mode (`/live`).
+
+- **Boutique Editorial Design Overhaul (Round 3)**:
+  - **Typography**: Paired variable serif **Fraunces** (`@fontsource/fraunces`) for large numbers, hero titles, score numbers, and greetings with **Inter** for data UI.
+  - **Color Palette**: Neutral graphite-black base (`#0C0D10`), warm off-white glass fill (`rgba(244,241,236,0.05)`), deep muted forest green (`#3F6B4F`), warm ochre/gold (`#C9A66B`), and warm rust/terracotta (`#C1502E`).
+  - **Depth & Texture**: Fine static film-grain overlay (`.bg-grain`) and 1px specular top edge highlights (`::before`).
+
+- **Free Practice & Auto Pose Recognition (`/live`) (Round 2)**:
+  - Real-time pose recognition engine continuously scores joint angles against reference poses and prompts the user when a pose is held for ~1.5s.
+
+- **Single-Source Mirror Container (Round 2)**:
+  - Mirroring wrapper `<div className="transform -scale-x-100">` flips both camera stream and SVG/canvas overlay together, keeping anatomical left/right wrist/knee landmarks aligned.
+
+- **Real-Time CV Engine & Posture Analysis (Round 1)**:
+  - `@mediapipe/tasks-vision` PoseLandmarker (33 keypoints) running locally via GPU/WASM.
+  - Vector trigonometry joint angle calculation (`poseGeometry.ts`) and tolerance scoring (`scoreEngine.ts`).
+  - Web Speech API Text-to-Speech audio reader (`feedbackEngine.ts`).
+
+---
+
+## 🎨 Design System Tokens
+
+| Element | Token | Usage |
+| :--- | :--- | :--- |
+| **Base Background** | `#0C0D10` | Neutral graphite-black (no blue tint) |
+| **Glass Surface** | `rgba(244,241,236,0.05)` | Warm off-white liquid glass surface |
+| **Glass Border** | `rgba(244,241,236,0.10)` | Subtle warm glass border |
+| **Primary Accent** | `#3F6B4F` | Deep muted forest/moss green |
+| **Secondary Accent**| `#C9A66B` | Warm ochre/gold highlight & active state |
+| **Alert/Tertiary** | `#C1502E` | Warm rust/terracotta for corrections |
+| **Text Primary** | `#F4F1EC` | Warm off-white |
+| **Display Font** | `Fraunces` | Variable serif for scores, titles & greetings |
+| **Body Font** | `Inter` | Sans-serif for labels & data density |
 
 ---
 
 ## 🚀 Quick Setup & Run
-
-### Prerequisites
-- Node.js v18 or later
-- npm v9 or later
-
-### Installation & Launch
 
 ```bash
 # 1. Install dependencies
@@ -35,15 +56,15 @@ npm install
 npm run dev
 ```
 
-Visit the local server URL printed by Vite (typically `http://localhost:5173`).
+Visit `http://localhost:5173` in your web browser.
 
 ---
 
-## 🏗 Architecture & File Structure
+## 🏗 Repository Structure
 
 ```
 src/
-├── components/          # Reusable Liquid Glass UI components
+├── components/          # Reusable Liquid Glass & SVG UI components
 │   ├── AnimatedNumber.tsx
 │   ├── BackgroundBlobs.tsx
 │   ├── BodySkeletonDiagram.tsx
@@ -51,46 +72,38 @@ src/
 │   ├── CircularProgressRing.tsx
 │   ├── GlassButton.tsx
 │   ├── GlassCard.tsx
-│   ├── PoseSilhouette.tsx
+│   ├── PoseReferenceIllustration.tsx # Custom line-art SVG silhouettes
 │   ├── ProtectedRoute.tsx
 │   ├── SkeletonOverlayCanvas.tsx
 │   ├── StatusBadge.tsx
 │   └── TopBar.tsx
 ├── data/
-│   └── poses.ts         # 8 reference yoga poses with target joint angles & tolerances
+│   └── poses.ts         # 8 reference poses with target angles, setupSteps & alignmentCues
 ├── hooks/
-│   └── usePoseTracking.ts # Shared camera initialization & MediaPipe detection hook
+│   └── usePoseTracking.ts # Shared camera & MediaPipe tracking hook
 ├── lib/
 │   ├── feedbackEngine.ts # Plain-English tip generation rules
-│   ├── mediaPipeLoader.ts # MediaPipe WASM PoseLandmarker loader
+│   ├── mediaPipeLoader.ts # WASM PoseLandmarker loader
 │   ├── poseGeometry.ts   # Vector trigonometry joint angle calculation
-│   └── scoreEngine.ts    # Posture scoring & tolerance decay logic
+│   └── scoreEngine.ts    # Posture scoring decay engine
 ├── screens/
 │   ├── FeedbackScreen.tsx
-│   ├── FreeTrackScreen.tsx # Auto-detection & free practice camera mode
+│   ├── FreeTrackScreen.tsx # Free practice & auto pose recognition screen
 │   ├── HistoryScreen.tsx
 │   ├── HomeScreen.tsx
 │   ├── LibraryScreen.tsx
-│   ├── LiveDetectScreen.tsx # Target pose scored session mode
+│   ├── LiveDetectScreen.tsx # Target pose scored session screen
 │   ├── LoginScreen.tsx
 │   ├── ProfileScreen.tsx
 │   ├── ProgressScreen.tsx
 │   ├── RegisterScreen.tsx
 │   └── ScoreScreen.tsx
 ├── services/
-│   ├── authService.ts   # Local Auth service behind swappable interface
-│   └── db.ts            # IndexedDB database operations (idb)
+│   ├── authService.ts   # Client-side WebCrypto auth
+│   └── db.ts            # IndexedDB operations (idb)
 ├── store/
-│   ├── useAuthStore.ts  # Zustand global auth state
-│   └── useSessionStore.ts # Zustand global session & streak state
+│   ├── useAuthStore.ts
+│   └── useSessionStore.ts
 └── types/
-    └── index.ts         # Central TypeScript interfaces & types
+    └── index.ts         # TypeScript definitions
 ```
-
----
-
-## 🔬 Research Concept vs Implementation Notes
-
-- **Pose Reference Alignment**: Uses standard vector trigonometry (joint triple dot-products and vertical spine tilt) which runs fully in-browser at 30+ FPS without needing a heavy cloud backend.
-- **Client-Side Model Execution**: Utilizes MediaPipe PoseLandmarker WASM bundle with GPU delegate fallback to CPU to guarantee smooth frame rates across mobile and desktop devices.
-- **Privacy First**: All video processing and landmark detection happens locally in your browser. Video frames are never recorded or transmitted over the network.
