@@ -4,25 +4,32 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, 
 import { TrendingUp, Calendar } from 'lucide-react';
 import { GlassCard } from '../components/GlassCard';
 import { TopBar } from '../components/TopBar';
-import { getAllSessions } from '../services/db';
+import { getAllSessions, getUserSessions } from '../services/db';
+import { useAuthStore } from '../store/useAuthStore';
 import { useSessionStore } from '../store/useSessionStore';
 import type { SessionSummary } from '../types';
 
 export const ProgressScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const { streak } = useSessionStore();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
 
   useEffect(() => {
     async function load() {
-      const data = await getAllSessions();
-      setSessions(data);
+      if (user?.id) {
+        const data = await getUserSessions(user.id);
+        setSessions(data);
+      } else {
+        const data = await getAllSessions();
+        setSessions(data);
+      }
     }
     load();
-  }, []);
+  }, [user]);
 
   const chartData = sessions.slice(0, 7).reverse().map((s) => ({
-    date: s.dateString.slice(5),
+    date: s.dateString ? s.dateString.slice(5) : (s.timestamp ? s.timestamp.slice(5, 10) : 'Today'),
     score: s.averageScore,
     duration: Math.round(s.durationSeconds / 60),
   }));

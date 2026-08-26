@@ -4,22 +4,29 @@ import { Calendar, ChevronRight, History as HistoryIcon } from 'lucide-react';
 import { GlassCard } from '../components/GlassCard';
 import { StatusBadge } from '../components/StatusBadge';
 import { TopBar } from '../components/TopBar';
-import { getAllSessions } from '../services/db';
+import { getAllSessions, getUserSessions } from '../services/db';
+import { useAuthStore } from '../store/useAuthStore';
 import type { SessionSummary } from '../types';
 
 export const HistoryScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const data = await getAllSessions();
-      setSessions(data);
+      if (user?.id) {
+        const data = await getUserSessions(user.id);
+        setSessions(data);
+      } else {
+        const data = await getAllSessions();
+        setSessions(data);
+      }
       setLoading(false);
     }
     load();
-  }, []);
+  }, [user]);
 
   return (
     <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">

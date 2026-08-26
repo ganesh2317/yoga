@@ -6,24 +6,35 @@ import { GlassButton } from '../components/GlassButton';
 import { GlassCard } from '../components/GlassCard';
 import { StatusBadge } from '../components/StatusBadge';
 import { TopBar } from '../components/TopBar';
-import { getSessionById } from '../services/db';
+import { getAllSessions, getSessionById, getUserSessions } from '../services/db';
+import { useAuthStore } from '../store/useAuthStore';
 import type { JointEvaluation, SessionSummary } from '../types';
 
 export const FeedbackScreen: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [session, setSession] = useState<SessionSummary | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
     async function load() {
+      let found: SessionSummary | undefined = undefined;
       if (sessionId && sessionId !== 'latest') {
-        const found = await getSessionById(sessionId);
-        setSession(found || null);
+        found = await getSessionById(sessionId);
       }
+      if (!found && user?.id) {
+        const userSessions = await getUserSessions(user.id);
+        found = userSessions[0];
+      }
+      if (!found) {
+        const all = await getAllSessions();
+        found = all[0];
+      }
+      setSession(found || null);
     }
     load();
-  }, [sessionId]);
+  }, [sessionId, user]);
 
   const tips = session?.feedbackTips || [
     'Great overall stability in your core and posture alignment!',

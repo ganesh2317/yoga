@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type { UserProfile } from '../types';
 import { authService } from '../services/authService';
+import { getUserById, saveUser } from '../services/db';
+import { useSessionStore } from './useSessionStore';
 
 interface AuthStoreState {
   user: UserProfile | null;
@@ -25,6 +27,10 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   error: null,
 
   initialize: async () => {
+    if (get().user && get().isAuthenticated) {
+      set({ isLoading: false });
+      return;
+    }
     try {
       set({ isLoading: true, error: null });
       const session = await authService.getCurrentSession();
@@ -34,7 +40,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
         set({ user: null, token: null, isAuthenticated: false });
       }
     } catch (err: any) {
-      set({ error: err.message || 'Failed to restore session' });
+      set({ error: err.message || 'Failed to restore session', isAuthenticated: false });
     } finally {
       set({ isLoading: false });
     }
@@ -70,10 +76,21 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     set({ user: null, token: null, isAuthenticated: false, error: null });
   },
 
-  updateDailyGoal: (minutes) => {
+  updateDailyGoal: async (minutes: number) => {
     const currentUser = get().user;
     if (currentUser) {
-      set({ user: { ...currentUser, dailyGoalMinutes: minutes } });
+      const updatedUser = { ...currentUser, dailyGoalMinutes: minutes };
+      set({ user: updatedUser });
+
+      const fullUser = await authService.getCurrentSession();
+      if (fullUser) {
+        const dbUser = await getUserById(currentUser.id);
+        if (dbUser) {
+          await saveUser({ ...dbUser, dailyGoalMinutes: minutes });
+        }
+      }
+
+      useSessionStore.getState().fetchUserSessions(currentUser.id, minutes);
     }
   },
 
