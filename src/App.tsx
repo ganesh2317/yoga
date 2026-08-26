@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { BackgroundBlobs } from './components/BackgroundBlobs';
 import { BottomNav } from './components/BottomNav';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { TrackingErrorBoundary } from './components/TrackingErrorBoundary';
 import { LoginScreen } from './screens/LoginScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -63,7 +64,9 @@ export function App() {
               path="/live"
               element={
                 <ProtectedRoute>
-                  <FreeTrackScreen />
+                  <TrackingErrorBoundary>
+                    <FreeTrackScreen />
+                  </TrackingErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -72,7 +75,9 @@ export function App() {
               path="/live/:poseId"
               element={
                 <ProtectedRoute>
-                  <LiveDetectScreen />
+                  <TrackingErrorBoundary>
+                    <LiveDetectScreen />
+                  </TrackingErrorBoundary>
                 </ProtectedRoute>
               }
             />

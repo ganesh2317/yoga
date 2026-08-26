@@ -4,6 +4,7 @@ import type { JointLandmark } from '../types';
 
 export function usePoseTracking() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(performance.now());
   const lastDetectTimeRef = useRef<number>(0);
@@ -24,6 +25,7 @@ export function usePoseTracking() {
         setErrorMessage('');
 
         const landmarker = await getPoseLandmarker();
+        if (!isSubscribed) return;
 
         const isMobile = isMobileDevice();
         // Use 640x480 on mobile for smooth performance & lower memory overhead
@@ -36,7 +38,15 @@ export function usePoseTracking() {
           audio: false,
         });
 
-        if (!isSubscribed) return;
+        // Track stream in ref immediately to guarantee cleanup on unmount
+        streamRef.current = stream;
+
+        if (!isSubscribed) {
+          // If component unmounted while getUserMedia was resolving, stop stream immediately
+          stream.getTracks().forEach((t) => t.stop());
+          streamRef.current = null;
+          return;
+        }
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -55,14 +65,14 @@ export function usePoseTracking() {
             }
 
             // Throttle MediaPipe processing to ~30 FPS (at least 33ms interval)
-            // Prevents 120Hz mobile screens from overwhelming WebGL memory
+            // Prevents high refresh rate screens from overwhelming WebGL memory
             if (now - lastDetectTimeRef.current >= 33) {
               lastDetectTimeRef.current = now;
 
               if (videoRef.current && videoRef.current.readyState >= 2 && landmarker) {
                 try {
                   const results = landmarker.detectForVideo(videoRef.current, now);
-                  if (results.landmarks && results.landmarks.length > 0) {
+                  if (results && results.landmarks && results.landmarks.length > 0) {
                     const raw = results.landmarks[0];
 
                     // 1. Temporal Exponential Moving Average (EMA) Smoothing
@@ -100,7 +110,9 @@ export function usePoseTracking() {
               }
             }
 
-            animFrameRef.current = requestAnimationFrame(processFrame);
+            if (isSubscribed) {
+              animFrameRef.current = requestAnimationFrame(processFrame);
+            }
           };
 
           animFrameRef.current = requestAnimationFrame(processFrame);
@@ -116,14 +128,24 @@ export function usePoseTracking() {
 
     initPipeline();
 
+    // Guaranteed Cleanup on Unmount / Navigation
     return () => {
       isSubscribed = false;
+
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
       }
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach((t) => t.stop());
+        videoRef.current.srcObject = null;
       }
     };
   }, []);

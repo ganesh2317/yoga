@@ -51,6 +51,9 @@ export const LiveDetectScreen: React.FC = () => {
     lastEvalRef.current = evalRes;
     setLiveScore(evalRes.score);
     frameScoresRef.current.push(evalRes.score);
+    if (frameScoresRef.current.length > 1000) {
+      frameScoresRef.current.shift();
+    }
   }, [landmarks, pose, isReady]);
 
   // Stop session & persist to IndexedDB
