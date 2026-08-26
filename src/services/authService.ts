@@ -51,7 +51,15 @@ class LocalAuthService implements IAuthService {
   }
 
   async login(email: string, password: string): Promise<{ user: UserProfile; token: string }> {
-    const userWithHash = await getUserByEmail(email.toLowerCase().trim());
+    const cleanEmail = email.toLowerCase().trim();
+    let userWithHash = await getUserByEmail(cleanEmail);
+
+    if (!userWithHash && cleanEmail === 'demo@yogasense.ai') {
+      // Auto-create demo user account on first demo login
+      await this.register('Demo Yogi', 'demo@yogasense.ai', 'password123');
+      userWithHash = await getUserByEmail(cleanEmail);
+    }
+
     if (!userWithHash) {
       throw new Error('Invalid email or password.');
     }
