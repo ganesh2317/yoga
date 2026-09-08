@@ -1,6 +1,6 @@
 import type { JointEvaluation, YogaPose } from '../types';
 
-const JOINT_FEEDBACK_TEMPLATES: Record<string, { slight: string[]; poor: string[]; good: string }> = {
+export const JOINT_FEEDBACK_TEMPLATES: Record<string, { slight: string[]; poor: string[]; good: string }> = {
   leftKnee: {
     good: 'Great! Your left leg alignment is stable and well-supported.',
     slight: [

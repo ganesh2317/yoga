@@ -11,6 +11,7 @@ import { YOGA_POSES } from '../data/poses';
 import { usePoseTracking } from '../hooks/usePoseTracking';
 import { computeAnglesFromLandmarks } from '../lib/poseGeometry';
 import { evaluatePoseFrame } from '../lib/scoreEngine';
+import { voiceCoach } from '../lib/voiceCoach';
 import type { YogaPose } from '../types';
 
 export const FreeTrackScreen: React.FC = () => {
@@ -26,6 +27,12 @@ export const FreeTrackScreen: React.FC = () => {
 
   const rollingWindowRef = useRef<{ poseId: string; score: number }[]>([]);
   const lastEvalTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    return () => {
+      voiceCoach.reset();
+    };
+  }, []);
 
   // Live Auto Pose Recognition Engine with Hysteresis
   useEffect(() => {
@@ -102,16 +109,24 @@ export const FreeTrackScreen: React.FC = () => {
     }
   }, [landmarks]);
 
-  // Show prompt if pose is sustained for ~1.5s
+  // Show prompt and trigger voice coach if pose is sustained for ~1.5s
   useEffect(() => {
     if (
       detectedPose &&
-      matchSustainedCount >= 12 &&
-      promptDismissedForPose !== detectedPose.pose.id
+      matchSustainedCount >= 12
     ) {
-      setShowSessionPrompt(true);
+      if (promptDismissedForPose !== detectedPose.pose.id) {
+        setShowSessionPrompt(true);
+      }
+      if (landmarks && landmarks.length >= 29) {
+        const angles = computeAnglesFromLandmarks(landmarks);
+        const evalRes = evaluatePoseFrame(angles, detectedPose.pose);
+        voiceCoach.processFrame(evalRes.jointEvaluations, evalRes.score);
+      }
+    } else {
+      voiceCoach.reset();
     }
-  }, [detectedPose, matchSustainedCount, promptDismissedForPose]);
+  }, [detectedPose, matchSustainedCount, promptDismissedForPose, landmarks]);
 
   const handleDismissPrompt = () => {
     if (detectedPose) {

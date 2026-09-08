@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CameraOff, RefreshCw, Square, Sparkles, Play, BookOpen, ChevronUp, ChevronDown, CheckCircle, AlertTriangle } from 'lucide-react';
+import { CameraOff, RefreshCw, Square, Sparkles, Play, BookOpen, ChevronUp, ChevronDown, CheckCircle, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
 import { GlassCard } from '../components/GlassCard';
 import { GlassButton } from '../components/GlassButton';
 import { StatusBadge } from '../components/StatusBadge';
@@ -11,6 +11,7 @@ import { usePoseTracking } from '../hooks/usePoseTracking';
 import { computeAnglesFromLandmarks } from '../lib/poseGeometry';
 import { evaluatePoseFrame } from '../lib/scoreEngine';
 import { generatePersonalizedFeedback } from '../lib/feedbackEngine';
+import { voiceCoach } from '../lib/voiceCoach';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSessionStore } from '../store/useSessionStore';
 import type { FrameEvaluation, SessionSummary } from '../types';
@@ -32,6 +33,13 @@ export const LiveDetectScreen: React.FC = () => {
   const [showInSessionGuide, setShowInSessionGuide] = useState<boolean>(false);
   const [liveScore, setLiveScore] = useState<number>(85);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  const [isVoiceMuted, setIsVoiceMuted] = useState<boolean>(voiceCoach.getMuted());
+
+  useEffect(() => {
+    return () => {
+      voiceCoach.reset();
+    };
+  }, []);
 
   // Session timer - only ticks when isReady is true
   useEffect(() => {
@@ -54,6 +62,7 @@ export const LiveDetectScreen: React.FC = () => {
     if (frameScoresRef.current.length > 1000) {
       frameScoresRef.current.shift();
     }
+    voiceCoach.processFrame(evalRes.jointEvaluations, evalRes.score);
   }, [landmarks, pose, isReady]);
 
   // Stop session & persist to IndexedDB
@@ -124,6 +133,19 @@ export const LiveDetectScreen: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsVoiceMuted(voiceCoach.toggleMute())}
+              className={`px-3 py-1.5 rounded-full backdrop-blur-md border text-[11px] font-bold flex items-center gap-1 transition-all ${
+                isVoiceMuted
+                  ? 'bg-[#EF4444]/20 border-[#EF4444]/40 text-[#EF4444]'
+                  : 'bg-black/65 border-white/15 text-[#34D399] hover:bg-black/85'
+              }`}
+              title={isVoiceMuted ? 'Unmute Voice Coach' : 'Mute Voice Coach'}
+            >
+              {isVoiceMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+              <span>{isVoiceMuted ? 'Muted' : 'Coach'}</span>
+            </button>
+
             {isReady && (
               <button
                 onClick={() => setShowInSessionGuide(!showInSessionGuide)}
