@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CameraOff, RefreshCw, Square, Sparkles, Play, BookOpen, ChevronUp, ChevronDown, CheckCircle, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
+import { CameraOff, RefreshCw, Square, Sparkles, Play, BookOpen, ChevronUp, ChevronDown, CheckCircle, AlertTriangle, Volume2, VolumeX, Wind } from 'lucide-react';
 import { GlassCard } from '../components/GlassCard';
 import { GlassButton } from '../components/GlassButton';
 import { StatusBadge } from '../components/StatusBadge';
 import { SkeletonOverlayCanvas } from '../components/SkeletonOverlayCanvas';
 import { PoseReferenceIllustration } from '../components/PoseReferenceIllustration';
+import { BreathGuide } from '../components/BreathGuide';
 import { YOGA_POSES } from '../data/poses';
 import { usePoseTracking } from '../hooks/usePoseTracking';
 import { computeAnglesFromLandmarks } from '../lib/poseGeometry';
@@ -31,6 +32,7 @@ export const LiveDetectScreen: React.FC = () => {
 
   const [isReady, setIsReady] = useState<boolean>(false);
   const [showInSessionGuide, setShowInSessionGuide] = useState<boolean>(false);
+  const [showBreathGuide, setShowBreathGuide] = useState<boolean>(false);
   const [liveScore, setLiveScore] = useState<number>(85);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [isVoiceMuted, setIsVoiceMuted] = useState<boolean>(voiceCoach.getMuted());
@@ -146,6 +148,19 @@ export const LiveDetectScreen: React.FC = () => {
               <span>{isVoiceMuted ? 'Muted' : 'Coach'}</span>
             </button>
 
+            <button
+              onClick={() => setShowBreathGuide(!showBreathGuide)}
+              className={`px-3 py-1.5 rounded-full backdrop-blur-md border text-[11px] font-bold flex items-center gap-1 transition-all ${
+                showBreathGuide
+                  ? 'bg-[#34D399]/20 border-[#34D399]/40 text-[#34D399]'
+                  : 'bg-black/65 border-white/15 text-[#94A3B8] hover:bg-black/85 hover:text-[#F5F7FA]'
+              }`}
+              title={showBreathGuide ? 'Hide Breath Guide' : 'Show Breath Guide'}
+            >
+              <Wind className="w-3.5 h-3.5" />
+              <span>Breath</span>
+            </button>
+
             {isReady && (
               <button
                 onClick={() => setShowInSessionGuide(!showInSessionGuide)}
@@ -162,6 +177,13 @@ export const LiveDetectScreen: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Breath Pacing Guide Overlay */}
+        {showBreathGuide && (
+          <div className="absolute top-16 left-4 z-30 animate-in fade-in duration-200">
+            <BreathGuide onClose={() => setShowBreathGuide(false)} />
+          </div>
+        )}
 
         {/* Full-Body-in-Frame Guard Warning Badge */}
         {!isFullBodyVisible && isReady && cameraState === 'active' && (
