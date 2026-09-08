@@ -89,7 +89,12 @@ export const HistoryScreen: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={status} size="sm" />
+                  <div className="flex flex-col items-end gap-1">
+                    <StatusBadge status={status} size="sm" />
+                    <span className="text-[10px] font-bold text-[#F59E0B]">
+                      {ses.accuracyPercent !== undefined ? `${ses.accuracyPercent}% Acc` : '— Acc'}
+                    </span>
+                  </div>
                   <ChevronRight className="w-4 h-4 text-[#64748B]" />
                 </div>
               </GlassCard>

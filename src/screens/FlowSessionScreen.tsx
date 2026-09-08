@@ -30,6 +30,7 @@ import { computeAnglesFromLandmarks } from '../lib/poseGeometry';
 import { evaluatePoseFrame } from '../lib/scoreEngine';
 import { generatePersonalizedFeedback } from '../lib/feedbackEngine';
 import { voiceCoach } from '../lib/voiceCoach';
+import { AccuracyTracker } from '../lib/accuracyTracker';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSessionStore } from '../store/useSessionStore';
 import type { FrameEvaluation, SessionSummary, YogaPose } from '../types';
@@ -57,9 +58,12 @@ export const FlowSessionScreen: React.FC = () => {
   const [showInSessionGuide, setShowInSessionGuide] = useState<boolean>(false);
   const [showBreathGuide, setShowBreathGuide] = useState<boolean>(false);
   const [liveScore, setLiveScore] = useState<number>(85);
+  const [liveAccuracy, setLiveAccuracy] = useState<number>(100);
   const [holdSeconds, setHoldSeconds] = useState<number>(0);
   const [totalElapsedSeconds, setTotalElapsedSeconds] = useState<number>(0);
   const [isVoiceMuted, setIsVoiceMuted] = useState<boolean>(voiceCoach.getMuted());
+
+  const accuracyTrackerRef = useRef<AccuracyTracker>(new AccuracyTracker());
 
   const currentFlowPoseConfig = flow.poses[currentPoseIndex] || flow.poses[0];
   const currentPose: YogaPose =
@@ -109,6 +113,11 @@ export const FlowSessionScreen: React.FC = () => {
 
     voiceCoach.processFrame(evalRes.jointEvaluations, evalRes.score);
 
+    // Accuracy tracker update using actual wall-clock time & full-body visibility check
+    const isTrackingValid = Boolean(cameraState === 'active' || cameraState === 'simulated') && isFullBodyVisible;
+    accuracyTrackerRef.current.update(evalRes.score, isTrackingValid);
+    setLiveAccuracy(accuracyTrackerRef.current.getAccuracyPercent());
+
     // Track hold duration if posture score is acceptable (>= 65)
     if (evalRes.score >= 65) {
       const now = performance.now();
@@ -124,7 +133,7 @@ export const FlowSessionScreen: React.FC = () => {
         });
       }
     }
-  }, [landmarks, currentPose, currentPoseIndex, isReady, currentFlowPoseConfig.targetHoldSeconds]);
+  }, [landmarks, currentPose, currentPoseIndex, isReady, currentFlowPoseConfig.targetHoldSeconds, cameraState, isFullBodyVisible]);
 
   const handleNextPose = async () => {
     voiceCoach.speak('Great hold!');
@@ -154,6 +163,7 @@ export const FlowSessionScreen: React.FC = () => {
 
     const totalDuration = Math.max(10, totalElapsedSeconds);
     const caloriesBurned = Math.max(2, Math.round((totalDuration / 60) * 4.0));
+    const accuracyStats = accuracyTrackerRef.current.getStats();
 
     const sessionId = 'flow_ses_' + Date.now();
     const todayStr = new Date().toISOString().split('T')[0];
@@ -168,6 +178,9 @@ export const FlowSessionScreen: React.FC = () => {
       dateString: todayStr,
       durationSeconds: totalDuration,
       averageScore: avgScore,
+      accuracyPercent: accuracyStats.accuracyPercent,
+      inPositionSeconds: accuracyStats.inPositionSeconds,
+      totalTrackedSeconds: accuracyStats.totalTrackedSeconds,
       categoryBreakdown: lastEval.categoryBreakdown,
       jointEvaluations: lastEval.jointEvaluations,
       feedbackTips,
@@ -450,12 +463,23 @@ export const FlowSessionScreen: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] text-[#94A3B8] mb-1 font-bold uppercase tracking-widest">
-              Live Score
-            </span>
-            <div className="px-3.5 py-1 rounded-2xl bg-white/10 border border-white/20 font-display font-extrabold text-xl text-[#34D399]">
-              {liveScore}<span className="text-xs text-[#94A3B8] font-normal">/100</span>
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] text-[#94A3B8] mb-1 font-bold uppercase tracking-widest">
+                Alignment
+              </span>
+              <div className="px-3 py-1 rounded-2xl bg-white/10 border border-white/20 font-display font-extrabold text-xl text-[#34D399]">
+                {liveScore}<span className="text-xs text-[#94A3B8] font-normal">/100</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] text-[#94A3B8] mb-1 font-bold uppercase tracking-widest">
+                Accuracy
+              </span>
+              <div className="px-3 py-1 rounded-2xl bg-white/10 border border-white/20 font-display font-extrabold text-xl text-[#F59E0B]">
+                {liveAccuracy}%
+              </div>
             </div>
           </div>
         </div>

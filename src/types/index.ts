@@ -93,6 +93,9 @@ export interface SessionSummary {
   dateString: string; // YYYY-MM-DD
   durationSeconds: number;
   averageScore: number;
+  accuracyPercent?: number; // 0 - 100 (% of time spent in correct position >= 75)
+  inPositionSeconds?: number;
+  totalTrackedSeconds?: number;
   categoryBreakdown: CategoryBreakdown;
   jointEvaluations: Record<string, JointEvaluation>;
   feedbackTips: string[];

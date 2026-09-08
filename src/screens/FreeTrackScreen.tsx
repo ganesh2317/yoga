@@ -12,6 +12,7 @@ import { usePoseTracking } from '../hooks/usePoseTracking';
 import { computeAnglesFromLandmarks } from '../lib/poseGeometry';
 import { evaluatePoseFrame } from '../lib/scoreEngine';
 import { voiceCoach } from '../lib/voiceCoach';
+import { AccuracyTracker } from '../lib/accuracyTracker';
 import type { YogaPose } from '../types';
 
 export const FreeTrackScreen: React.FC = () => {
@@ -24,13 +25,16 @@ export const FreeTrackScreen: React.FC = () => {
   const [showSessionPrompt, setShowSessionPrompt] = useState<boolean>(false);
   const [showGuideDrawer, setShowGuideDrawer] = useState<boolean>(false);
   const [selectedGuidePose, setSelectedGuidePose] = useState<YogaPose>(YOGA_POSES[0]);
+  const [liveAccuracy, setLiveAccuracy] = useState<number>(100);
 
   const rollingWindowRef = useRef<{ poseId: string; score: number }[]>([]);
   const lastEvalTimeRef = useRef<number>(0);
+  const accuracyTrackerRef = useRef<AccuracyTracker>(new AccuracyTracker());
 
   useEffect(() => {
     return () => {
       voiceCoach.reset();
+      accuracyTrackerRef.current.reset();
     };
   }, []);
 
@@ -122,11 +126,16 @@ export const FreeTrackScreen: React.FC = () => {
         const angles = computeAnglesFromLandmarks(landmarks);
         const evalRes = evaluatePoseFrame(angles, detectedPose.pose);
         voiceCoach.processFrame(evalRes.jointEvaluations, evalRes.score);
+
+        const isTrackingValid = Boolean(cameraState === 'active' || cameraState === 'simulated') && isFullBodyVisible;
+        accuracyTrackerRef.current.update(evalRes.score, isTrackingValid);
+        setLiveAccuracy(accuracyTrackerRef.current.getAccuracyPercent());
       }
     } else {
       voiceCoach.reset();
+      accuracyTrackerRef.current.reset();
     }
-  }, [detectedPose, matchSustainedCount, promptDismissedForPose, landmarks]);
+  }, [detectedPose, matchSustainedCount, promptDismissedForPose, landmarks, cameraState, isFullBodyVisible]);
 
   const handleDismissPrompt = () => {
     if (detectedPose) {
@@ -298,7 +307,12 @@ export const FreeTrackScreen: React.FC = () => {
                   </p>
                 </div>
 
-                <StatusBadge status="Good" label={`${detectedPose.score}% Match`} />
+                <div className="flex items-center gap-2">
+                  <StatusBadge status="Good" label={`${detectedPose.score}% Match`} />
+                  <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-bold text-[#F59E0B]">
+                    {liveAccuracy}% Acc
+                  </span>
+                </div>
               </div>
 
               {/* Auto-detected Prompt with Reference Illustration */}

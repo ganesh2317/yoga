@@ -107,20 +107,28 @@ export const ScoreScreen: React.FC = () => {
           }
         />
 
-        <div className="grid grid-cols-2 gap-4 w-full pt-3 border-t border-white/10">
+        <div className="grid grid-cols-3 gap-2 w-full pt-3 border-t border-white/10 text-center">
           <div>
             <span className="text-[10px] text-[#64748B] uppercase tracking-widest block">
               Duration
             </span>
-            <p className="font-display font-bold text-lg text-[#F5F7FA]">
+            <p className="font-display font-bold text-base text-[#F5F7FA]">
               {mins > 0 ? `${mins}m ${secs}s` : `${secs}s`}
+            </p>
+          </div>
+          <div>
+            <span className="text-[10px] text-[#64748B] uppercase tracking-widest block">
+              Accuracy
+            </span>
+            <p className="font-display font-bold text-base text-[#F59E0B]">
+              {session?.accuracyPercent !== undefined ? `${session.accuracyPercent}%` : '—'}
             </p>
           </div>
           <div>
             <span className="text-[10px] text-[#64748B] uppercase tracking-widest block">
               Est. Calories
             </span>
-            <p className="font-display font-bold text-lg text-[#34D399]">
+            <p className="font-display font-bold text-base text-[#34D399]">
               {session?.caloriesBurned || 4} kcal
             </p>
           </div>

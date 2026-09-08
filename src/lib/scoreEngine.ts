@@ -9,6 +9,11 @@ import type {
 } from '../types';
 
 /**
+ * Alignment score threshold (75/100) required to count as "in correct position" for Accuracy calculation.
+ */
+export const ACCURACY_CORRECT_THRESHOLD = 75;
+
+/**
  * Computes individual joint score (0 - 100) and status based on deviation from target angle.
  */
 export function evaluateSingleJoint(

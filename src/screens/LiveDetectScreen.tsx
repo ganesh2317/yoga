@@ -13,6 +13,7 @@ import { computeAnglesFromLandmarks } from '../lib/poseGeometry';
 import { evaluatePoseFrame } from '../lib/scoreEngine';
 import { generatePersonalizedFeedback } from '../lib/feedbackEngine';
 import { voiceCoach } from '../lib/voiceCoach';
+import { AccuracyTracker } from '../lib/accuracyTracker';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSessionStore } from '../store/useSessionStore';
 import type { FrameEvaluation, SessionSummary } from '../types';
@@ -29,23 +30,27 @@ export const LiveDetectScreen: React.FC = () => {
 
   const frameScoresRef = useRef<number[]>([]);
   const lastEvalRef = useRef<FrameEvaluation | null>(null);
+  const accuracyTrackerRef = useRef<AccuracyTracker>(new AccuracyTracker());
 
   const [isReady, setIsReady] = useState<boolean>(false);
   const [showInSessionGuide, setShowInSessionGuide] = useState<boolean>(false);
   const [showBreathGuide, setShowBreathGuide] = useState<boolean>(false);
   const [liveScore, setLiveScore] = useState<number>(85);
+  const [liveAccuracy, setLiveAccuracy] = useState<number>(100);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [isVoiceMuted, setIsVoiceMuted] = useState<boolean>(voiceCoach.getMuted());
 
   useEffect(() => {
     return () => {
       voiceCoach.reset();
+      accuracyTrackerRef.current.reset();
     };
   }, []);
 
   // Session timer - only ticks when isReady is true
   useEffect(() => {
     if (!isReady) return;
+    accuracyTrackerRef.current.reset();
     const timer = setInterval(() => {
       setElapsedSeconds((prev) => prev + 1);
     }, 1000);
@@ -65,7 +70,12 @@ export const LiveDetectScreen: React.FC = () => {
       frameScoresRef.current.shift();
     }
     voiceCoach.processFrame(evalRes.jointEvaluations, evalRes.score);
-  }, [landmarks, pose, isReady]);
+
+    // Accuracy tracker update using actual wall-clock time & full-body visibility check
+    const isTrackingValid = Boolean(cameraState === 'active' || cameraState === 'simulated') && isFullBodyVisible;
+    accuracyTrackerRef.current.update(evalRes.score, isTrackingValid);
+    setLiveAccuracy(accuracyTrackerRef.current.getAccuracyPercent());
+  }, [landmarks, pose, isReady, isFullBodyVisible, cameraState]);
 
   // Stop session & persist to IndexedDB
   const handleStopSession = async () => {
@@ -80,6 +90,8 @@ export const LiveDetectScreen: React.FC = () => {
       Math.round((elapsedSeconds / 60) * pose.estimatedCaloriesPerMin)
     );
 
+    const accuracyStats = accuracyTrackerRef.current.getStats();
+
     const sessionId = 'ses_' + Date.now();
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -93,6 +105,9 @@ export const LiveDetectScreen: React.FC = () => {
       dateString: todayStr,
       durationSeconds: Math.max(5, elapsedSeconds),
       averageScore: avgScore,
+      accuracyPercent: accuracyStats.accuracyPercent,
+      inPositionSeconds: accuracyStats.inPositionSeconds,
+      totalTrackedSeconds: accuracyStats.totalTrackedSeconds,
       categoryBreakdown: finalEval.categoryBreakdown,
       jointEvaluations: finalEval.jointEvaluations,
       feedbackTips,
@@ -344,12 +359,23 @@ export const LiveDetectScreen: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] text-[#94A3B8] mb-1 font-bold uppercase tracking-widest">
-              Alignment
-            </span>
-            <div className="px-3.5 py-1.5 rounded-2xl bg-white/10 border border-white/20 font-display font-extrabold text-2xl text-[#34D399] shadow-inner">
-              {liveScore}<span className="text-xs text-[#94A3B8] font-normal">/100</span>
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] text-[#94A3B8] mb-1 font-bold uppercase tracking-widest">
+                Alignment
+              </span>
+              <div className="px-3 py-1 rounded-2xl bg-white/10 border border-white/20 font-display font-extrabold text-xl text-[#34D399] shadow-inner">
+                {liveScore}<span className="text-xs text-[#94A3B8] font-normal">/100</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] text-[#94A3B8] mb-1 font-bold uppercase tracking-widest">
+                Accuracy
+              </span>
+              <div className="px-3 py-1 rounded-2xl bg-white/10 border border-white/20 font-display font-extrabold text-xl text-[#F59E0B] shadow-inner">
+                {liveAccuracy}%
+              </div>
             </div>
           </div>
         </div>
