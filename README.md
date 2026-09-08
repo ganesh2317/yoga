@@ -1,10 +1,18 @@
-# YogaSense AI — Master Build (Round 7 Features)
+# YogaSense AI — Master Build (Round 8 Features)
 
-**YogaSense AI** is a client-side AI-driven posture assistant and guided yoga practice application. Built with React 18, TypeScript, Vite, Tailwind CSS, MediaPipe PoseLandmarker, Framer Motion, and SpeechSynthesis, it provides real-time body tracking, posture scoring, auto pose recognition, transition-based voice coaching, animated breath guidance, and custom multi-pose routines.
+**YogaSense AI** is a client-side AI-driven posture assistant and guided yoga practice application. Built with React 18, TypeScript, Vite, Tailwind CSS, MediaPipe PoseLandmarker, Framer Motion, and SpeechSynthesis, it provides real-time body tracking, posture scoring, auto pose recognition, transition-based voice coaching, animated breath guidance, custom multi-pose routines, and time-in-position accuracy analytics.
 
 ---
 
 ## 🌟 Key Features & Refinement Rounds
+
+- **Real-Time "Time-in-Position" Accuracy Metric (Round 8 — Workstream N)**:
+  - **Alignment vs. Accuracy Distinction**:
+    - **Alignment Score** ($0 - 100$): Instantaneous joint angle match quality at this exact moment.
+    - **Accuracy Percentage** ($0 - 100\%$): Percentage of total validly tracked session duration during which the user held correct posture ($\ge 75/100$ Alignment).
+  - **Wall-Clock Time Accumulator (`src/lib/accuracyTracker.ts`)**: Built with `performance.now()` elapsed time accumulators (not frame averages). Excludes untracked/occluded moments (`isFullBodyVisible === false` or missing landmarks) from both numerator and denominator entirely.
+  - **Threshold**: Exposes `ACCURACY_CORRECT_THRESHOLD = 75` as a named constant.
+  - **Live & Historical Tracking**: Displays live Accuracy side-by-side with Alignment on live tracking screens; persists `accuracyPercent` to IndexedDB; displays on Score summary, History logs (`78% Acc`), and plots dual Alignment vs Accuracy trend lines on Progress analytics.
 
 - **Real-Time Voice Coaching (Round 7 — Workstream K)**:
   - **State-Machine Service (`src/lib/voiceCoach.ts`)**: Wraps browser SpeechSynthesis with transition-based triggering rules — speaks *only* when joint status degrades (`Good` → `Slight`/`Poor`) or after 13s+ cooldown on uncorrected form.
