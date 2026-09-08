@@ -1,10 +1,26 @@
-# YogaSense AI — Master Build (Round 4 Refined)
+# YogaSense AI — Master Build (Round 7 Features)
 
-**YogaSense AI** is a client-side AI-driven posture assistant and guided yoga practice application. Built with React 18, TypeScript, Vite, Tailwind CSS, MediaPipe PoseLandmarker, and Manrope/Inter typography, it provides real-time body tracking, posture scoring, auto pose recognition, and detailed posture reference guides.
+**YogaSense AI** is a client-side AI-driven posture assistant and guided yoga practice application. Built with React 18, TypeScript, Vite, Tailwind CSS, MediaPipe PoseLandmarker, Framer Motion, and SpeechSynthesis, it provides real-time body tracking, posture scoring, auto pose recognition, transition-based voice coaching, animated breath guidance, and custom multi-pose routines.
 
 ---
 
 ## 🌟 Key Features & Refinement Rounds
+
+- **Real-Time Voice Coaching (Round 7 — Workstream K)**:
+  - **State-Machine Service (`src/lib/voiceCoach.ts`)**: Wraps browser SpeechSynthesis with transition-based triggering rules — speaks *only* when joint status degrades (`Good` → `Slight`/`Poor`) or after 13s+ cooldown on uncorrected form.
+  - **Single Cue Prioritization**: Prioritizes severe deviations so the voice never chatters or queues multiple simultaneous phrases.
+  - **Positive Reinforcement**: Praises corrected form when flagged joints return to `Good` or when holding good form for 8+ seconds.
+  - **Utterance Stack Control & Mute Persist**: Cancels preceding utterances to eliminate backlog. Persistent mute toggle stored in user settings and HUD.
+
+- **Animated Breath-Pacing Guide (Round 7 — Workstream L)**:
+  - **Fluid Liquid-Glass Visual Pulse (`BreathGuide.tsx`)**: Framer Motion animated expanding/contracting double ring (4s Inhale / 4s Exhale) matching `CircularProgressRing` visual language.
+  - **Non-Obstructive Overlay**: Floating toggleable widget positioned in tracking HUD without obstructing skeleton canvas or score readouts.
+
+- **Custom Multi-Pose Flows & Routines (Round 7 — Workstream M)**:
+  - **Curated Routines (`src/data/flows.ts`)**: Pre-built multi-pose sequences ("Morning Energy Flow", "Beginner Foundation Flow", "Warrior Strength Routine").
+  - **Flow Browser (`/flows`)**: Card list displaying pose sequence chips, estimated duration, difficulty tags, and sanskrit titles.
+  - **Auto-Advancing Flow Tracker (`/flow/:flowId`)**: Sequences through flow poses with posture hold timers (e.g. 10–15s hold at score >= 65). Auto-advances to next pose upon hold completion, with manual skip controls for accessibility.
+  - **Session Aggregation**: Summarizes overall flow score, total duration, and calories burned into IndexedDB.
 
 - **Hardened Tracking Pipeline (Round 4)**:
   - Upgraded MediaPipe engine to high-precision `pose_landmarker_heavy.task` running on GPU with 0.65 confidence thresholds.
