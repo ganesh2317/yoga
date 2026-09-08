@@ -80,14 +80,22 @@ export const HomeScreen: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-2 pt-2 flex-wrap">
             <GlassButton
               onClick={() => navigate('/live')}
               variant="primary"
               size="md"
               leftIcon={<Camera className="w-4 h-4" />}
             >
-              Start Free Practice
+              Free Practice
+            </GlassButton>
+            <GlassButton
+              onClick={() => navigate('/flows')}
+              variant="warm"
+              size="md"
+              leftIcon={<Sparkles className="w-4 h-4" />}
+            >
+              Routine Flows
             </GlassButton>
             <GlassButton
               onClick={() => navigate('/library')}

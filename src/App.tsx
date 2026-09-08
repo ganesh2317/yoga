@@ -15,13 +15,16 @@ import { FeedbackScreen } from './screens/FeedbackScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { ProgressScreen } from './screens/ProgressScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
+import { FlowListScreen } from './screens/FlowListScreen';
+import { FlowSessionScreen } from './screens/FlowSessionScreen';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const hideBottomNav =
     ['/login', '/register'].includes(location.pathname) ||
     location.pathname === '/live' ||
-    location.pathname.startsWith('/live/');
+    location.pathname.startsWith('/live/') ||
+    location.pathname.startsWith('/flow/');
 
   return (
     <>
@@ -123,6 +126,26 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <ProfileScreen />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/flows"
+              element={
+                <ProtectedRoute>
+                  <FlowListScreen />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/flow/:flowId"
+              element={
+                <ProtectedRoute>
+                  <TrackingErrorBoundary>
+                    <FlowSessionScreen />
+                  </TrackingErrorBoundary>
                 </ProtectedRoute>
               }
             />
