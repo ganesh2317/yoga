@@ -16,7 +16,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     isLoading,
     initialize,
     user,
-    error,
+    sessionRestoreError,
     isBlocked,
     blockedMessage,
     retry,
@@ -51,7 +51,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }, [user, fetchUserSessions]);
 
   // If blocked or initialization error or loading timed out, show clear recovery UI
-  if ((!isLoading && error) || isBlocked || (isLoading && loadTimedOut)) {
+  if (isBlocked || (isLoading && loadTimedOut) || (!isLoading && !isAuthenticated && sessionRestoreError)) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-text-primary p-4">
         <Surface variant="raised" className="max-w-md w-full p-6 md:p-8 space-y-5 text-center shadow-2xl border-poor/40 animate-in fade-in zoom-in duration-200">
@@ -71,7 +71,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             </h2>
             <p className="text-xs md:text-sm text-text-3 leading-relaxed">
               {blockedMessage ||
-                error ||
+                sessionRestoreError ||
                 'YogaSense is taking longer than expected to access local storage. If another YogaSense tab is open, please close it and retry.'}
             </p>
           </div>

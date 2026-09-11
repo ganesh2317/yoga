@@ -10,6 +10,7 @@ interface AuthStoreState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  sessionRestoreError: string | null;
   isBlocked: boolean;
   blockedMessage: string | null;
   isVersionChange: boolean;
@@ -30,8 +31,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => {
       set({
         isBlocked: true,
         blockedMessage: dbState.message,
-        isLoading: false,
-        error: dbState.message,
+        sessionRestoreError: dbState.message,
       });
     } else if (dbState.isVersionChange) {
       set({
@@ -47,17 +47,18 @@ export const useAuthStore = create<AuthStoreState>((set, get) => {
     isAuthenticated: false,
     isLoading: true,
     error: null,
+    sessionRestoreError: null,
     isBlocked: false,
     blockedMessage: null,
     isVersionChange: false,
 
     initialize: async () => {
       if (get().user && get().isAuthenticated) {
-        set({ isLoading: false, isBlocked: false, error: null });
+        set({ isLoading: false, isBlocked: false, sessionRestoreError: null });
         return;
       }
 
-      set({ isLoading: true, error: null, isBlocked: false, blockedMessage: null });
+      set({ isLoading: true, sessionRestoreError: null, isBlocked: false, blockedMessage: null });
 
       const SESSION_RESTORE_TIMEOUT_MS = 8000;
       let timer: any = null;
@@ -85,7 +86,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => {
             user: session.user,
             token: session.token,
             isAuthenticated: true,
-            error: null,
+            sessionRestoreError: null,
             isBlocked: false,
             isLoading: false,
           });
@@ -94,7 +95,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => {
             user: null,
             token: null,
             isAuthenticated: false,
-            error: null,
+            sessionRestoreError: null,
             isBlocked: false,
             isLoading: false,
           });
@@ -108,7 +109,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => {
           err?.message?.toLowerCase().includes('timed out');
 
         set({
-          error: err.message || 'Failed to restore session',
+          sessionRestoreError: err.message || 'Failed to restore session',
           isAuthenticated: false,
           isBlocked: Boolean(isBlockedMsg),
           blockedMessage: err.message || null,
@@ -119,7 +120,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => {
 
     retry: async () => {
       closeDB();
-      set({ isLoading: true, error: null, isBlocked: false, blockedMessage: null });
+      set({ isLoading: true, sessionRestoreError: null, isBlocked: false, blockedMessage: null });
       await get().initialize();
     },
 

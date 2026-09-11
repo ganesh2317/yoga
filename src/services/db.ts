@@ -80,29 +80,59 @@ function updateDBState(partial: Partial<DBState>) {
 const DB_NAME = 'yogasense_db';
 const DB_VERSION = 2;
 const DB_OPEN_TIMEOUT_MS = 8000;
+const DB_CHANNEL_NAME = 'yogasense_db_sync';
 
-let dbPromise: Promise<IDBPDatabase<YogaSenseDB>> | null = null;
-let currentDbInstance: IDBPDatabase<YogaSenseDB> | null = null;
-
-export function closeDB(): void {
-  if (currentDbInstance) {
-    try {
-      currentDbInstance.close();
-    } catch (_) {}
-    currentDbInstance = null;
+// Multi-Tab Coordination via BroadcastChannel
+let syncChannel: BroadcastChannel | null = null;
+if (typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined') {
+  try {
+    syncChannel = new BroadcastChannel(DB_CHANNEL_NAME);
+    syncChannel.onmessage = (event) => {
+      const data = event.data;
+      if (data?.type === 'REQUEST_CLOSE_FOR_UPGRADE') {
+        console.log(`[DB Sync] Received close request from another tab upgrading to v${data.targetVersion}`);
+        closeDB();
+      } else if (data?.type === 'UPGRADE_COMPLETE') {
+        console.log(`[DB Sync] Database upgrade to v${data.version} completed in another tab`);
+        closeDB();
+      }
+    };
+  } catch (err) {
+    console.warn('[DB Sync] BroadcastChannel initialization warning:', err);
   }
-  dbPromise = null;
 }
 
-export function getDB(): Promise<IDBPDatabase<YogaSenseDB>> {
-  if (dbPromise) {
-    return dbPromise;
-  }
+function broadcastUpgradeRequest(targetVersion: number) {
+  try {
+    syncChannel?.postMessage({ type: 'REQUEST_CLOSE_FOR_UPGRADE', targetVersion });
+  } catch (_) {}
+}
 
+function broadcastUpgradeComplete(version: number) {
+  try {
+    syncChannel?.postMessage({ type: 'UPGRADE_COMPLETE', version });
+  } catch (_) {}
+}
+
+let cachedDB: IDBPDatabase<YogaSenseDB> | null = null;
+let inFlightOpenPromise: Promise<IDBPDatabase<YogaSenseDB>> | null = null;
+
+export function closeDB(): void {
+  if (cachedDB) {
+    try {
+      cachedDB.close();
+    } catch (_) {}
+    cachedDB = null;
+  }
+  inFlightOpenPromise = null;
+}
+
+async function openWithAutoRetry(retriesRemaining = 3, delayMs = 200): Promise<IDBPDatabase<YogaSenseDB>> {
   let timer: any = null;
 
   const openPromise = openDB<YogaSenseDB>(DB_NAME, DB_VERSION, {
     upgrade(db, oldVersion) {
+      console.log(`[IndexedDB] Upgrading schema from v${oldVersion} to v${DB_VERSION}`);
       // Users store
       if (!db.objectStoreNames.contains('users')) {
         const userStore = db.createObjectStore('users', { keyPath: 'id' });
@@ -130,13 +160,16 @@ export function getDB(): Promise<IDBPDatabase<YogaSenseDB>> {
     },
     blocked(currentVersion, blockedVersion, _event) {
       console.warn(
-        `[IndexedDB] Upgrade to v${blockedVersion ?? DB_VERSION} blocked by open connection at v${currentVersion}.`
+        `[IndexedDB] Upgrade to v${blockedVersion ?? DB_VERSION} blocked by open connection at v${currentVersion}. Requesting other tabs to close.`
       );
-      updateDBState({
-        isBlocked: true,
-        isVersionChange: false,
-        message: 'Database upgrade is blocked by another open tab. Please close all other YogaSense AI tabs and refresh this page.',
-      });
+      broadcastUpgradeRequest(blockedVersion ?? DB_VERSION);
+      if (retriesRemaining <= 1) {
+        updateDBState({
+          isBlocked: true,
+          isVersionChange: false,
+          message: 'Database upgrade is blocked by another open tab. Please close other YogaSense AI tabs and refresh.',
+        });
+      }
     },
     blocking(currentVersion, blockedVersion, _event) {
       console.warn(
@@ -146,7 +179,7 @@ export function getDB(): Promise<IDBPDatabase<YogaSenseDB>> {
       updateDBState({
         isBlocked: false,
         isVersionChange: true,
-        message: 'A newer version of YogaSense AI is active in another tab. Connection closed. Please refresh.',
+        message: 'A newer version of YogaSense AI is active in another tab.',
       });
     },
     terminated() {
@@ -157,41 +190,71 @@ export function getDB(): Promise<IDBPDatabase<YogaSenseDB>> {
 
   const timeoutPromise = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
-      closeDB();
-      const state = getLatestDBState();
-      const msg = state.isBlocked
-        ? 'Database upgrade blocked: another tab is keeping an older database connection open. Please close other YogaSense AI tabs and reload.'
-        : 'Database connection timed out (8s). Please close any other open YogaSense AI tabs and retry.';
-      reject(new Error(msg));
+      reject(new Error('DB open timeout'));
     }, DB_OPEN_TIMEOUT_MS);
   });
 
-  dbPromise = Promise.race([openPromise, timeoutPromise])
+  try {
+    const db = await Promise.race([openPromise, timeoutPromise]);
+    clearTimeout(timer);
+    cachedDB = db;
+    updateDBState({ isBlocked: false, message: null });
+    broadcastUpgradeComplete(DB_VERSION);
+
+    db.onversionchange = () => {
+      console.warn('[IndexedDB] db.onversionchange triggered: closing connection proactively.');
+      closeDB();
+      updateDBState({
+        isBlocked: false,
+        isVersionChange: true,
+        message: 'YogaSense AI database was updated in another tab.',
+      });
+    };
+
+    return db;
+  } catch (err: any) {
+    clearTimeout(timer);
+    closeDB();
+
+    // If blocked or timed out and retries remain, request tabs to close, wait and retry automatically
+    if (retriesRemaining > 0) {
+      console.log(`[IndexedDB] Retrying connection attempt (${retriesRemaining} retries left)...`);
+      broadcastUpgradeRequest(DB_VERSION);
+      await new Promise((res) => setTimeout(res, delayMs));
+      return openWithAutoRetry(retriesRemaining - 1, delayMs * 1.5);
+    }
+
+    const state = getLatestDBState();
+    const msg = state.isBlocked
+      ? 'Database upgrade blocked: another tab is keeping an older database connection open. Please close other YogaSense AI tabs and reload.'
+      : 'Database connection timed out (8s). Please close any other open YogaSense AI tabs and retry.';
+    throw new Error(msg);
+  }
+}
+
+export function getDB(): Promise<IDBPDatabase<YogaSenseDB>> {
+  // 1. If we already have a valid open connection, reuse it immediately
+  if (cachedDB) {
+    return Promise.resolve(cachedDB);
+  }
+
+  // 2. If an open operation is already in flight, reuse the promise
+  if (inFlightOpenPromise) {
+    return inFlightOpenPromise;
+  }
+
+  // 3. Initiate single open operation
+  inFlightOpenPromise = openWithAutoRetry()
     .then((db) => {
-      clearTimeout(timer);
-      currentDbInstance = db;
-      updateDBState({ isBlocked: false, message: null });
-
-      // Proactively close and yield connection if another tab needs to upgrade later
-      db.onversionchange = () => {
-        console.warn('[IndexedDB] db.onversionchange triggered: closing connection proactively to allow upgrade.');
-        closeDB();
-        updateDBState({
-          isBlocked: false,
-          isVersionChange: true,
-          message: 'YogaSense AI database was updated in another tab. Please reload this tab.',
-        });
-      };
-
+      inFlightOpenPromise = null;
       return db;
     })
     .catch((err) => {
-      clearTimeout(timer);
-      closeDB();
+      inFlightOpenPromise = null;
       throw err;
     });
 
-  return dbPromise;
+  return inFlightOpenPromise;
 }
 
 // User DB operations
