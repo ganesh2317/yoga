@@ -44,7 +44,7 @@ export type LandmarkIndex = typeof LM[keyof typeof LM];
 
 /**
  * Full pose skeleton connections (~35 edges).
- * Includes face, torso, arms, hands, legs, and feet.
+ * Includes face, torso, arms, hands, legs, and feet (raw MediaPipe graph).
  */
 export const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   // Face / Head
@@ -101,6 +101,67 @@ export const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   [LM.RIGHT_ANKLE, LM.RIGHT_HEEL],
   [LM.RIGHT_ANKLE, LM.RIGHT_FOOT_INDEX],
   [LM.RIGHT_HEEL, LM.RIGHT_FOOT_INDEX],
+] as const;
+
+/**
+ * Curated body-only connections for visual skeleton overlays.
+ * Explicitly excludes all facial landmarks (eyes, ears, mouth 1–10).
+ */
+export const BODY_POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
+  // Torso
+  [LM.LEFT_SHOULDER, LM.RIGHT_SHOULDER],
+  [LM.LEFT_SHOULDER, LM.LEFT_HIP],
+  [LM.RIGHT_SHOULDER, LM.RIGHT_HIP],
+  [LM.LEFT_HIP, LM.RIGHT_HIP],
+
+  // Left arm
+  [LM.LEFT_SHOULDER, LM.LEFT_ELBOW],
+  [LM.LEFT_ELBOW, LM.LEFT_WRIST],
+
+  // Right arm
+  [LM.RIGHT_SHOULDER, LM.RIGHT_ELBOW],
+  [LM.RIGHT_ELBOW, LM.RIGHT_WRIST],
+
+  // Left leg
+  [LM.LEFT_HIP, LM.LEFT_KNEE],
+  [LM.LEFT_KNEE, LM.LEFT_ANKLE],
+
+  // Left foot
+  [LM.LEFT_ANKLE, LM.LEFT_HEEL],
+  [LM.LEFT_ANKLE, LM.LEFT_FOOT_INDEX],
+  [LM.LEFT_HEEL, LM.LEFT_FOOT_INDEX],
+
+  // Right leg
+  [LM.RIGHT_HIP, LM.RIGHT_KNEE],
+  [LM.RIGHT_KNEE, LM.RIGHT_ANKLE],
+
+  // Right foot
+  [LM.RIGHT_ANKLE, LM.RIGHT_HEEL],
+  [LM.RIGHT_ANKLE, LM.RIGHT_FOOT_INDEX],
+  [LM.RIGHT_HEEL, LM.RIGHT_FOOT_INDEX],
+] as const;
+
+/**
+ * Body joint landmark indices drawn as node dots on the visual overlay.
+ * Facial landmarks (indices 1–10) are excluded; NOSE (0) is handled as a single head marker.
+ */
+export const BODY_JOINT_INDICES = [
+  LM.LEFT_SHOULDER,
+  LM.RIGHT_SHOULDER,
+  LM.LEFT_ELBOW,
+  LM.RIGHT_ELBOW,
+  LM.LEFT_WRIST,
+  LM.RIGHT_WRIST,
+  LM.LEFT_HIP,
+  LM.RIGHT_HIP,
+  LM.LEFT_KNEE,
+  LM.RIGHT_KNEE,
+  LM.LEFT_ANKLE,
+  LM.RIGHT_ANKLE,
+  LM.LEFT_HEEL,
+  LM.RIGHT_HEEL,
+  LM.LEFT_FOOT_INDEX,
+  LM.RIGHT_FOOT_INDEX,
 ] as const;
 
 /**

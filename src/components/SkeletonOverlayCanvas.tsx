@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { POSE_CONNECTIONS, LM } from '../lib/poseTopology';
+import { BODY_POSE_CONNECTIONS, BODY_JOINT_INDICES, LM } from '../lib/poseTopology';
 import { toDisplayX } from '../lib/mirror';
 import type { JointLandmark, JointStatus } from '../types';
 
@@ -35,9 +35,9 @@ const JOINT_TO_LM_INDEX: Record<string, number[]> = {
 };
 
 const STATUS_COLORS: Record<JointStatus, string> = {
-  Good: '#22c55e',
-  Slight: '#f59e0b',
-  Poor: '#ef4444',
+  Good: '#2ECC8B',
+  Slight: '#F0B429',
+  Poor: '#F2645A',
   Unknown: '#94a3b8',
 };
 
@@ -146,8 +146,8 @@ export const SkeletonOverlayCanvas: React.FC<SkeletonOverlayCanvasProps> = ({
       }
     }
 
-    // 1. Draw Bones / Connections
-    POSE_CONNECTIONS.forEach(([i, j]) => {
+    // 1. Draw Clean Body Bones / Connections
+    BODY_POSE_CONNECTIONS.forEach(([i, j]) => {
       const p1 = mapped[i];
       const p2 = mapped[j];
 
@@ -156,11 +156,11 @@ export const SkeletonOverlayCanvas: React.FC<SkeletonOverlayCanvasProps> = ({
         const s1 = lmStatusMap[i] || 'Good';
         const s2 = lmStatusMap[j] || 'Good';
 
-        let strokeColor = 'rgba(34, 197, 94, 0.75)'; // default good
+        let strokeColor = 'rgba(46, 204, 139, 0.85)'; // Good (green)
         if (s1 === 'Poor' || s2 === 'Poor') {
-          strokeColor = 'rgba(239, 68, 68, 0.85)';
+          strokeColor = 'rgba(242, 100, 90, 0.9)'; // Poor (red)
         } else if (s1 === 'Slight' || s2 === 'Slight') {
-          strokeColor = 'rgba(245, 158, 11, 0.85)';
+          strokeColor = 'rgba(240, 180, 41, 0.9)'; // Slight (amber)
         }
 
         ctx.save();
@@ -171,6 +171,7 @@ export const SkeletonOverlayCanvas: React.FC<SkeletonOverlayCanvasProps> = ({
         ctx.lineWidth = 3.5;
         ctx.strokeStyle = strokeColor;
         ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         ctx.moveTo(p1.x, p1.y);
         ctx.lineTo(p2.x, p2.y);
         ctx.stroke();
@@ -178,17 +179,87 @@ export const SkeletonOverlayCanvas: React.FC<SkeletonOverlayCanvasProps> = ({
       }
     });
 
-    // 2. Draw Landmark Nodes
-    mapped.forEach((pt, idx) => {
-      if (pt.visibility > 0.35) {
+    // 2. Draw Neck / Spine to Head connection (from shoulder midpoint to head center)
+    const nose = mapped[LM.NOSE];
+    const leftShoulder = mapped[LM.LEFT_SHOULDER];
+    const rightShoulder = mapped[LM.RIGHT_SHOULDER];
+
+    if (
+      nose &&
+      leftShoulder &&
+      rightShoulder &&
+      nose.visibility > 0.35 &&
+      leftShoulder.visibility > 0.35 &&
+      rightShoulder.visibility > 0.35
+    ) {
+      const shoulderMidX = (leftShoulder.x + rightShoulder.x) / 2;
+      const shoulderMidY = (leftShoulder.y + rightShoulder.y) / 2;
+      const isLowConf = nose.visibility < 0.6;
+      const headStatus = lmStatusMap[LM.NOSE] || 'Good';
+
+      let strokeColor = 'rgba(46, 204, 139, 0.85)';
+      if (headStatus === 'Poor') {
+        strokeColor = 'rgba(242, 100, 90, 0.9)';
+      } else if (headStatus === 'Slight') {
+        strokeColor = 'rgba(240, 180, 41, 0.9)';
+      }
+
+      ctx.save();
+      ctx.beginPath();
+      if (isLowConf) {
+        ctx.setLineDash([4, 4]);
+      }
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = strokeColor;
+      ctx.lineCap = 'round';
+      ctx.moveTo(shoulderMidX, shoulderMidY);
+      ctx.lineTo(nose.x, nose.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 3. Draw Single Clean Head Marker (at nose position)
+    if (nose && nose.visibility > 0.35) {
+      const headStatus = lmStatusMap[LM.NOSE] || 'Good';
+      const headColor = STATUS_COLORS[headStatus];
+
+      // Outer soft aura
+      ctx.beginPath();
+      ctx.arc(nose.x, nose.y, 10, 0, Math.PI * 2);
+      ctx.fillStyle = headColor;
+      ctx.globalAlpha = Math.min(1, nose.visibility * 0.25);
+      ctx.fill();
+
+      // Head circle outline & fill
+      ctx.beginPath();
+      ctx.arc(nose.x, nose.y, 6.5, 0, Math.PI * 2);
+      ctx.strokeStyle = headColor;
+      ctx.lineWidth = 2.5;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.globalAlpha = Math.min(1, nose.visibility * 0.95);
+      ctx.fill();
+      ctx.stroke();
+
+      // Bright inner center
+      ctx.beginPath();
+      ctx.arc(nose.x, nose.y, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 1;
+      ctx.fill();
+    }
+
+    // 4. Draw Body Joint Nodes (Curated body-only joints, excluding all face landmarks)
+    BODY_JOINT_INDICES.forEach((idx) => {
+      const pt = mapped[idx];
+      if (pt && pt.visibility > 0.35) {
         const status = lmStatusMap[idx] || 'Good';
         const color = STATUS_COLORS[status];
 
         // Outer aura
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+        ctx.arc(pt.x, pt.y, 5.5, 0, Math.PI * 2);
         ctx.fillStyle = color;
-        ctx.globalAlpha = Math.min(1, pt.visibility * 0.9);
+        ctx.globalAlpha = Math.min(1, pt.visibility * 0.85);
         ctx.fill();
 
         // Inner bright core
@@ -207,3 +278,4 @@ export const SkeletonOverlayCanvas: React.FC<SkeletonOverlayCanvasProps> = ({
     </div>
   );
 };
+
