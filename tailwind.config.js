@@ -11,9 +11,12 @@ export default {
           DEFAULT: "var(--bg)",
           elev: "var(--bg-elev)",
         },
+        background: "var(--background)",
         surface: {
           DEFAULT: "var(--surface)",
+          1: "var(--surface-1)",
           2: "var(--surface-2)",
+          border: "var(--surface-border)",
         },
         raised: "var(--raised)",
         border: {
@@ -24,12 +27,24 @@ export default {
           DEFAULT: "var(--text)",
           2: "var(--text-2)",
           3: "var(--text-3)",
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+          muted: "var(--text-muted)",
         },
         accent: {
           DEFAULT: "var(--accent)",
           hover: "var(--accent-hover)",
           soft: "var(--accent-soft)",
           fg: "var(--accent-fg)",
+        },
+        /* Primary is an alias for accent — used extensively in the codebase */
+        primary: {
+          DEFAULT: "var(--primary)",
+          400: "var(--primary)",
+          500: "var(--primary)",
+          hover: "var(--primary-hover)",
+          soft: "var(--primary-soft)",
+          fg: "var(--primary-fg)",
         },
         good: {
           DEFAULT: "var(--good)",
@@ -42,6 +57,31 @@ export default {
         poor: {
           DEFAULT: "var(--poor)",
           soft: "var(--poor-soft)",
+        },
+        /* Semantic status aliases */
+        success: {
+          DEFAULT: "var(--success)",
+          400: "var(--success)",
+          500: "var(--success)",
+          soft: "var(--success-soft)",
+        },
+        warning: {
+          DEFAULT: "var(--warning)",
+          400: "var(--warning)",
+          500: "var(--warning)",
+          soft: "var(--warning-soft)",
+        },
+        danger: {
+          DEFAULT: "var(--danger)",
+          400: "var(--danger)",
+          500: "var(--danger)",
+          soft: "var(--danger-soft)",
+        },
+        info: {
+          DEFAULT: "var(--info)",
+          400: "var(--info)",
+          500: "var(--info)",
+          soft: "var(--info-soft)",
         },
         tier: {
           ground: "var(--tier-ground)",

@@ -14,19 +14,34 @@
   --bg: #0B0B0D;
   --bg-elev: #121215;
   --surface: #17171B;
+  --surface-1: #17171B;
   --surface-2: #1E1E23;
   --raised: #26262C;
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
+  --surface-border: rgba(255, 255, 255, 0.08);
 
   --text: #F6F6F7;
   --text-2: rgba(246, 246, 247, 0.64);
   --text-3: rgba(246, 246, 247, 0.40);
+  /* Semantic aliases used throughout app */
+  --text-primary: #F6F6F7;
+  --text-secondary: rgba(246, 246, 247, 0.64);
+  --text-muted: rgba(246, 246, 247, 0.40);
+
+  /* Background aliases */
+  --background: #0B0B0D;
 
   --accent: #4C6FFF;
   --accent-hover: #3D5CF0;
   --accent-soft: rgba(76, 111, 255, 0.14);
   --accent-fg: #FFFFFF;
+
+  /* Primary = Accent alias (used as primary-* in codebase) */
+  --primary: #4C6FFF;
+  --primary-hover: #3D5CF0;
+  --primary-soft: rgba(76, 111, 255, 0.14);
+  --primary-fg: #FFFFFF;
 
   --good: #2ECC8B;
   --slight: #F0B429;
@@ -34,6 +49,16 @@
   --good-soft: rgba(46, 204, 139, 0.14);
   --slight-soft: rgba(240, 180, 41, 0.14);
   --poor-soft: rgba(242, 100, 90, 0.14);
+
+  /* Semantic status colors */
+  --success: #2ECC8B;
+  --success-soft: rgba(46, 204, 139, 0.14);
+  --warning: #F0B429;
+  --warning-soft: rgba(240, 180, 41, 0.14);
+  --danger: #F2645A;
+  --danger-soft: rgba(242, 100, 90, 0.14);
+  --info: #5E9FE8;
+  --info-soft: rgba(94, 159, 232, 0.14);
 
   /* Journey Tier Colors */
   --tier-ground: #A1A1AA;
@@ -71,19 +96,34 @@
   --bg: #FAFAF9;
   --bg-elev: #FFFFFF;
   --surface: #FFFFFF;
+  --surface-1: #FFFFFF;
   --surface-2: #F3F3F1;
   --raised: #FFFFFF;
   --border: #E6E5E1;
   --border-strong: #D2D1CC;
+  --surface-border: #E6E5E1;
 
   --text: #16161A;
   --text-2: #5B5B65;
   --text-3: #8A8A93;
+  /* Semantic aliases */
+  --text-primary: #16161A;
+  --text-secondary: #5B5B65;
+  --text-muted: #8A8A93;
+
+  /* Background aliases */
+  --background: #FAFAF9;
 
   --accent: #2F55E0;
   --accent-hover: #2647C4;
   --accent-soft: rgba(47, 85, 224, 0.10);
   --accent-fg: #FFFFFF;
+
+  /* Primary = Accent alias */
+  --primary: #2F55E0;
+  --primary-hover: #2647C4;
+  --primary-soft: rgba(47, 85, 224, 0.10);
+  --primary-fg: #FFFFFF;
 
   --good: #16A46A;
   --slight: #B97800;
@@ -91,6 +131,16 @@
   --good-soft: rgba(22, 164, 106, 0.10);
   --slight-soft: rgba(185, 120, 0, 0.10);
   --poor-soft: rgba(217, 59, 47, 0.10);
+
+  /* Semantic status colors */
+  --success: #16A46A;
+  --success-soft: rgba(22, 164, 106, 0.10);
+  --warning: #B97800;
+  --warning-soft: rgba(185, 120, 0, 0.10);
+  --danger: #D93B2F;
+  --danger-soft: rgba(217, 59, 47, 0.10);
+  --info: #2F7EE0;
+  --info-soft: rgba(47, 126, 224, 0.10);
 
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
   --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.08);
