@@ -59,19 +59,17 @@ describe('journeyEngine', () => {
   });
 
   it('calculateJourneyPercent correctly aggregates completed levels and active progress', () => {
-    // Level 1 at 50% = (0 + 0.5) / 10 * 100 = 5%
-    expect(calculateJourneyPercent(1, 0.5)).toBe(5);
-    // Level 3 at 0% = (2 + 0) / 10 * 100 = 20%
-    expect(calculateJourneyPercent(3, 0)).toBe(20);
-    // Level 10 at 100% = (9 + 1) / 10 * 100 = 100%
-    expect(calculateJourneyPercent(10, 1.0)).toBe(100);
+    // Level 1 at 50% = (0 + 0.5) / 21 * 100 = 2.4%
+    expect(calculateJourneyPercent(1, 0.5)).toBeCloseTo(2.38, 1);
+    // Level 21 at 100% = (20 + 1) / 21 * 100 = 100%
+    expect(calculateJourneyPercent(21, 1.0)).toBe(100);
   });
 
   it('isPoseUnlocked verifies level prerequisites', () => {
     // Tadasana is Level 1 -> always unlocked
     expect(isPoseUnlocked('tadasana', 1)).toBe(true);
-    // Virabhadrasana II is Level 2 -> locked at Level 1, unlocked at Level 2
+    // Virabhadrasana II is Level 5 -> locked at Level 1, unlocked at Level 5
     expect(isPoseUnlocked('virabhadrasana2', 1)).toBe(false);
-    expect(isPoseUnlocked('virabhadrasana2', 2)).toBe(true);
+    expect(isPoseUnlocked('virabhadrasana2', 5)).toBe(true);
   });
 });

@@ -121,6 +121,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       currentLevel: newCurrentLevel,
       completedLevelNumbers: newCompleted,
       poseStats: newPoseStats,
+      schemaVersion: 2,
       updatedAt: new Date().toISOString(),
     };
 

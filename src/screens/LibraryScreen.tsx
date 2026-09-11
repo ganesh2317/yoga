@@ -52,6 +52,10 @@ export const LibraryScreen: React.FC = () => {
       pose.name.toLowerCase().includes(search.toLowerCase()) ||
       pose.sanskritName.toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;
+  }).sort((a, b) => {
+    const levelA = getPoseLevelInfo(a.id).level;
+    const levelB = getPoseLevelInfo(b.id).level;
+    return levelA - levelB;
   });
 
   return (

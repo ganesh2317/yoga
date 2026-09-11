@@ -10,6 +10,8 @@ export interface JourneyRecord {
   completedLevelNumbers: number[];
   poseStats: Record<string, PoseStatRecord>;
   updatedAt: string;
+  /** Data schema version — used to detect records written before the 21-level restructure. */
+  schemaVersion?: number;
 }
 
 export interface UserSettings {
@@ -346,9 +348,56 @@ export async function getSessionById(sessionId: string): Promise<SessionSummary 
 }
 
 // Journey DB operations
+
+/**
+ * Re-derives currentLevel and completedLevelNumbers from poseStats
+ * using the current JOURNEY_LEVELS definition. Used for data migrations.
+ */
+function deriveProgressFromPoseStats(
+  poseStats: Record<string, PoseStatRecord>
+): { currentLevel: number; completedLevelNumbers: number[] } {
+  let currentLevel = 1;
+  const completedLevelNumbers: number[] = [];
+
+  for (const lvl of JOURNEY_LEVELS) {
+    if (lvl.level === currentLevel) {
+      const progress = calculateLevelProgress(lvl, poseStats);
+      if (progress.isComplete && currentLevel < JOURNEY_LEVELS.length) {
+        completedLevelNumbers.push(currentLevel);
+        currentLevel += 1;
+      } else {
+        break;
+      }
+    }
+  }
+  return { currentLevel, completedLevelNumbers };
+}
+
 export async function getJourneyRecord(userId: string): Promise<JourneyRecord> {
   const db = await getDB();
   let record = await db.get('journey', userId);
+
+  // --- Data migration: v1 → v2 (10-level → 21-level schema) ---
+  // If an existing record predates the 21-level restructure (schemaVersion missing or < 2),
+  // re-evaluate currentLevel and completedLevelNumbers from the stored poseStats
+  // (which are keyed by poseId and remain valid across the restructure).
+  if (record && (record.schemaVersion === undefined || record.schemaVersion < 2)) {
+    if (isDev) console.log('[DB:migration] Migrating journey record to schema v2 (21-level)...');
+    const { currentLevel, completedLevelNumbers } = deriveProgressFromPoseStats(record.poseStats);
+    record = {
+      ...record,
+      currentLevel,
+      completedLevelNumbers,
+      schemaVersion: 2,
+      updatedAt: new Date().toISOString(),
+    };
+    try {
+      await db.put('journey', record);
+      if (isDev) console.log('[DB:migration] Journey record migrated successfully. New level:', currentLevel);
+    } catch (e) {
+      console.error('[DB:migration] Failed to save migrated journey record:', e);
+    }
+  }
 
   if (!record) {
     // Backfill or create initial record from existing user sessions
@@ -377,25 +426,14 @@ export async function getJourneyRecord(userId: string): Promise<JourneyRecord> {
         poseStats[s.poseId] = existing;
       }
 
-      // Evaluate progression sequentially
-      let currentLevel = 1;
-      const completedLevelNumbers: number[] = [];
-
-      for (const lvl of JOURNEY_LEVELS) {
-        if (lvl.level === currentLevel) {
-          const progress = calculateLevelProgress(lvl, poseStats);
-          if (progress.isComplete && currentLevel < JOURNEY_LEVELS.length) {
-            completedLevelNumbers.push(currentLevel);
-            currentLevel += 1;
-          }
-        }
-      }
+      const { currentLevel, completedLevelNumbers } = deriveProgressFromPoseStats(poseStats);
 
       record = {
         userId,
         currentLevel,
         completedLevelNumbers,
         poseStats,
+        schemaVersion: 2,
         updatedAt: new Date().toISOString(),
       };
 
@@ -407,6 +445,7 @@ export async function getJourneyRecord(userId: string): Promise<JourneyRecord> {
         currentLevel: 1,
         completedLevelNumbers: [],
         poseStats: {},
+        schemaVersion: 2,
         updatedAt: new Date().toISOString(),
       };
       try {
