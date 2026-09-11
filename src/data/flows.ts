@@ -1,3 +1,5 @@
+import { YOGA_POSES } from './poses';
+
 export interface FlowPoseConfig {
   poseId: string;
   targetHoldSeconds: number;
@@ -64,10 +66,11 @@ export const YOGA_FLOWS: Flow[] = [
     estimatedDurationMinutes: 5,
     poses: [
       { poseId: 'tadasana', targetHoldSeconds: 8 },
+      { poseId: 'virabhadrasana1', targetHoldSeconds: 15 },
       { poseId: 'virabhadrasana2', targetHoldSeconds: 15 },
+      { poseId: 'virabhadrasana3', targetHoldSeconds: 12 },
       { poseId: 'trikonasana', targetHoldSeconds: 15 },
       { poseId: 'utkatasana', targetHoldSeconds: 15 },
-      { poseId: 'vrikshasana', targetHoldSeconds: 12 },
     ],
     benefits: [
       'Strengthens thighs, calves & ankles',
@@ -75,4 +78,34 @@ export const YOGA_FLOWS: Flow[] = [
       'Fosters resilience & stamina',
     ],
   },
+  {
+    id: 'grounding_restore_flow',
+    name: 'Grounding & Restorative',
+    sanskritName: 'Shanti Vinyasa',
+    description: 'A deeply restorative floor sequence relieving spine stiffness, relaxing the nervous system, and restoring vitality.',
+    difficulty: 'Beginner',
+    estimatedDurationMinutes: 5,
+    poses: [
+      { poseId: 'balasana', targetHoldSeconds: 20 },
+      { poseId: 'marjaryasana_bitilasana', targetHoldSeconds: 20 },
+      { poseId: 'bhujangasana', targetHoldSeconds: 15 },
+      { poseId: 'setu_bandhasana', targetHoldSeconds: 18 },
+      { poseId: 'paschimottanasana', targetHoldSeconds: 20 },
+    ],
+    benefits: [
+      'Releases lumbar & neck tension',
+      'Promotes deep parasympathetic relaxation',
+      'Soothes internal organs',
+    ],
+  },
 ];
+
+// Dev assertion: Every poseId in every flow must exist in YOGA_POSES
+const knownPoseIds = new Set(YOGA_POSES.map((p) => p.id));
+for (const flow of YOGA_FLOWS) {
+  for (const item of flow.poses) {
+    if (!knownPoseIds.has(item.poseId)) {
+      console.error(`[Data Integrity Error] Flow "${flow.id}" references non-existent poseId "${item.poseId}"`);
+    }
+  }
+}

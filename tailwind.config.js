@@ -8,56 +8,85 @@ export default {
     extend: {
       colors: {
         bg: {
-          darkest: "#0A0E14", // Deep charcoal-navy near-black
-          surface: "#0F1620", // Panel/screen background
-          card: "#151B24",    // Dark charcoal card fill
+          DEFAULT: "var(--bg)",
+          elev: "var(--bg-elev)",
         },
-        accent: {
-          emerald: "#22C55E", // Bright emerald primary accent
-          mint: "#34D399",
-          amber: "#F59E0B",   // Warm amber/gold highlight & liquid glass material tint
-          gold: "#FBBF24",
-          red: "#EF4444",     // Poor / error red
+        surface: {
+          DEFAULT: "var(--surface)",
+          2: "var(--surface-2)",
         },
-        status: {
-          good: "#22C55E",
-          slight: "#F59E0B",
-          poor: "#EF4444",
+        raised: "var(--raised)",
+        border: {
+          DEFAULT: "var(--border)",
+          strong: "var(--border-strong)",
         },
         text: {
-          primary: "#F5F7FA",   // Clean off-white primary
-          secondary: "#94A3B8", // Slate grey secondary
-          tertiary: "#64748B",  // Muted slate tertiary
-        }
+          DEFAULT: "var(--text)",
+          2: "var(--text-2)",
+          3: "var(--text-3)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          hover: "var(--accent-hover)",
+          soft: "var(--accent-soft)",
+          fg: "var(--accent-fg)",
+        },
+        good: {
+          DEFAULT: "var(--good)",
+          soft: "var(--good-soft)",
+        },
+        slight: {
+          DEFAULT: "var(--slight)",
+          soft: "var(--slight-soft)",
+        },
+        poor: {
+          DEFAULT: "var(--poor)",
+          soft: "var(--poor-soft)",
+        },
+        tier: {
+          ground: "var(--tier-ground)",
+          breath: "var(--tier-breath)",
+          balance: "var(--tier-balance)",
+          strength: "var(--tier-strength)",
+          mastery: "var(--tier-mastery)",
+        },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        display: ['Manrope', 'sans-serif'],
-        heading: ['Manrope', 'sans-serif'],
-        serif: ['Manrope', 'sans-serif'], // Fallback mapping so font-serif uses Manrope
+        display: ['Fraunces', 'serif'],
+      },
+      fontSize: {
+        'display': ['2rem', { lineHeight: '2.5rem', letterSpacing: '-0.01em' }],
+        'h1': ['1.625rem', { lineHeight: '2rem', letterSpacing: '-0.01em' }],
+        'h2': ['1.25rem', { lineHeight: '1.75rem' }],
+        'h3': ['1.0625rem', { lineHeight: '1.5rem' }],
+        'body': ['1rem', { lineHeight: '1.5rem' }],
+        'label': ['0.875rem', { lineHeight: '1.25rem' }],
+        'caption': ['0.75rem', { lineHeight: '1rem' }],
+      },
+      spacing: {
+        '4.5': '1.125rem',
+        '18': '4.5rem',
+      },
+      borderRadius: {
+        'control': 'var(--radius-control)',
+        'card': 'var(--radius-card)',
+        'sheet': 'var(--radius-sheet)',
+        'hero': 'var(--radius-hero)',
+        'pill': 'var(--radius-pill)',
       },
       boxShadow: {
-        'glass-subtle': '0 8px 32px 0 rgba(0, 0, 0, 0.45)',
-        'glass-glow': '0 14px 44px 0 rgba(0, 0, 0, 0.65)',
-        'emerald-glow': '0 0 28px -4px rgba(34, 197, 94, 0.35)',
-        'amber-glow': '0 0 28px -4px rgba(245, 158, 11, 0.35)',
-        'red-glow': '0 0 28px -4px rgba(239, 68, 68, 0.35)',
+        '1': 'var(--shadow-1)',
+        '2': 'var(--shadow-2)',
       },
-      animation: {
-        'liquid-sweep': 'liquidSweep 650ms ease-out forwards',
-        'ring-glint': 'ringGlint 900ms ease-in-out forwards',
+      transitionTimingFunction: {
+        'smooth': 'var(--ease)',
       },
-      keyframes: {
-        liquidSweep: {
-          '0%': { transform: 'translateX(-100%) translateY(-100%) rotate(45deg)' },
-          '100%': { transform: 'translateX(200%) translateY(200%) rotate(45deg)' },
-        },
-        ringGlint: {
-          '0%': { opacity: '0', strokeDashoffset: '400' },
-          '50%': { opacity: '0.9' },
-          '100%': { opacity: '0', strokeDashoffset: '0' },
-        },
-      }
+      transitionDuration: {
+        'state': 'var(--dur-state)',
+        'enter': 'var(--dur-enter)',
+        'sheet': 'var(--dur-sheet)',
+      },
     },
   },
   plugins: [],

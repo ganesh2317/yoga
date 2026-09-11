@@ -1,201 +1,213 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, RotateCcw, Share2 } from 'lucide-react';
-import { CircularProgressRing } from '../components/CircularProgressRing';
-import { GlassButton } from '../components/GlassButton';
-import { GlassCard } from '../components/GlassCard';
-import { StatusBadge } from '../components/StatusBadge';
-import { TopBar } from '../components/TopBar';
-import { getSessionById } from '../services/db';
+import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  Sparkles,
+  RotateCcw,
+  ArrowRight,
+  Home,
+  CheckCircle2,
+  AlertTriangle,
+} from 'lucide-react';
 import type { SessionSummary } from '../types';
+import { Surface } from '../components/ui/Surface';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { Ring } from '../components/ui/Ring';
+import { Meter } from '../components/ui/Meter';
+import { Stat } from '../components/ui/Stat';
+import { useJourneyStore } from '../store/useJourneyStore';
 
 export const ScoreScreen: React.FC = () => {
-  const { sessionId } = useParams<{ sessionId: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
-  const [session, setSession] = useState<SessionSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { currentLevel, journeyPercent } = useJourneyStore();
 
-  useEffect(() => {
-    async function loadSession() {
-      if (sessionId) {
-        const found = await getSessionById(sessionId);
-        setSession(found || null);
-      }
-      setLoading(false);
-    }
-    loadSession();
-  }, [sessionId]);
+  const summary = location.state?.summary as SessionSummary | undefined;
 
-  if (loading) {
+  if (!summary) {
     return (
-      <div className="min-h-screen bg-[#0A0E14] flex items-center justify-center p-4">
-        <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-2 border-[#22C55E] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-[#94A3B8]">Calculating posture alignment score...</p>
-        </div>
+      <div className="min-h-screen bg-background text-text-primary flex flex-col items-center justify-center p-6 space-y-4">
+        <h2 className="text-2xl font-bold font-display">No Session Record Found</h2>
+        <p className="text-sm text-text-muted">Start a practice session from the library or home.</p>
+        <Button variant="primary" onClick={() => navigate('/')}>
+          <Home className="w-4 h-4 mr-2" /> Go to Home
+        </Button>
       </div>
     );
   }
 
-  const score = session?.averageScore || 85;
-  const poseName = session?.poseName || 'Warrior I';
-  const sanskritName = session?.sanskritName || 'Virabhadrasana I';
-  const durationSec = session?.durationSeconds || 60;
-  const mins = Math.floor(durationSec / 60);
-  const secs = durationSec % 60;
-
-  const scoreColorScheme = score >= 85 ? 'emerald' : score >= 65 ? 'amber' : 'red';
-  const statusType = score >= 85 ? 'Good' : score >= 65 ? 'Slight' : 'Poor';
-
-  const cb = session?.categoryBreakdown || {
-    knee: 92,
-    torso: 84,
-    shoulder: 78,
-    hip: 86,
-    balance: 88,
+  const categoryNames: Record<string, string> = {
+    overall: 'Overall Score',
+    shoulder: 'Shoulder Alignment',
+    hip: 'Pelvic & Hip Balance',
+    knee: 'Knee Tracking',
+    torso: 'Spine & Torso Posture',
+    balance: 'Center of Gravity',
   };
 
-  const categoryList = [
-    { category: 'Knee Alignment', score: cb.knee || 92 },
-    { category: 'Torso Tilt', score: cb.torso || 84 },
-    { category: 'Shoulder Position', score: cb.shoulder || 78 },
-    { category: 'Hip Balance', score: cb.hip || 86 },
-    { category: 'Overall Stability', score: cb.balance || 88 },
-  ];
+  const jointEvaluations = Object.values(summary.jointEvaluations || {});
+  const goodCount = jointEvaluations.filter((j) => j.status === 'Good').length;
+  const slightCount = jointEvaluations.filter((j) => j.status === 'Slight').length;
+  const poorCount = jointEvaluations.filter((j) => j.status === 'Poor').length;
 
   return (
-    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">
-      <TopBar title="Session Summary" showBack onBack={() => navigate('/home')} />
-
-      <div className="text-center space-y-1 pt-1">
-        <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-widest block">
-          Session Completed
-        </span>
-        <h2 className="font-display font-extrabold text-3xl text-[#F5F7FA]">
-          {poseName}
-        </h2>
-        <p className="text-xs text-[#F59E0B] italic font-medium">
-          {sanskritName}
-        </p>
+    <div className="min-h-screen bg-background text-text-primary p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-28">
+      {/* Header Celebration */}
+      <div className="text-center space-y-2 pt-4">
+        <Badge variant="accent" size="md">
+          <Sparkles className="w-3.5 h-3.5 mr-1" /> Practice Completed
+        </Badge>
+        <h1 className="text-3xl md:text-4xl font-display font-bold">
+          {summary.poseName} Session
+        </h1>
+        <p className="text-sm text-text-muted italic">{summary.sanskritName}</p>
       </div>
 
-      {/* Hero Score Ring Focal Card matching reference style */}
-      <GlassCard variant="focal" glowColor={scoreColorScheme} className="p-6 text-center flex flex-col items-center justify-center space-y-4">
-        <CircularProgressRing
-          value={score}
-          max={100}
-          size={160}
-          strokeWidth={12}
-          colorScheme={scoreColorScheme}
-        >
-          <span className="font-display font-extrabold text-5xl text-[#F5F7FA]">
-            {score}
-          </span>
-          <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mt-0.5">
-            Form Score
-          </span>
-        </CircularProgressRing>
+      {/* Main Score Hero Card */}
+      <Surface
+        variant="raised"
+        className="p-6 md:p-8 bg-gradient-to-br from-surface-1 to-surface-2 border-primary-500/20 flex flex-col md:flex-row items-center justify-around gap-6 shadow-xl"
+      >
+        <div className="flex items-center space-x-6">
+          <Ring
+            value={summary.averageScore}
+            size={120}
+            strokeWidth={10}
+            label={`${summary.averageScore}`}
+            variant={
+              summary.averageScore >= 80
+                ? 'good'
+                : summary.averageScore >= 60
+                ? 'slight'
+                : 'poor'
+            }
+          />
+          <Ring
+            value={summary.accuracyPercent ?? summary.averageScore}
+            size={120}
+            strokeWidth={10}
+            label={`${summary.accuracyPercent ?? summary.averageScore}%`}
+            variant="accent"
+          />
+        </div>
 
-        <StatusBadge
-          status={statusType}
-          label={
-            score >= 85
-              ? 'Excellent Alignment!'
-              : score >= 65
-              ? 'Good Pose Form'
-              : 'Form Correction Suggested'
-          }
-        />
+        <div className="grid grid-cols-3 gap-4 w-full md:w-auto text-center border-t md:border-t-0 md:border-l border-surface-border pt-4 md:pt-0 md:pl-8">
+          <Stat
+            label="Duration"
+            value={`${Math.round(summary.durationSeconds)}s`}
+            size="md"
+          />
+          <Stat
+            label="Best Hold"
+            value={`${summary.longestHoldSeconds ?? summary.inPositionSeconds ?? 0}s`}
+            size="md"
+          />
+          <Stat
+            label="Calories"
+            value={`${summary.caloriesBurned} kcal`}
+            size="md"
+          />
+        </div>
+      </Surface>
 
-        <div className="grid grid-cols-3 gap-2 w-full pt-3 border-t border-white/10 text-center">
-          <div>
-            <span className="text-[10px] text-[#64748B] uppercase tracking-widest block">
-              Duration
-            </span>
-            <p className="font-display font-bold text-base text-[#F5F7FA]">
-              {mins > 0 ? `${mins}m ${secs}s` : `${secs}s`}
-            </p>
+      {/* Journey Progression Card */}
+      <Surface variant="flat" className="p-5 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-primary-500/15 text-primary-400 flex items-center justify-center font-bold">
+            L{currentLevel}
           </div>
           <div>
-            <span className="text-[10px] text-[#64748B] uppercase tracking-widest block">
-              Accuracy
-            </span>
-            <p className="font-display font-bold text-base text-[#F59E0B]">
-              {session?.accuracyPercent !== undefined ? `${session.accuracyPercent}%` : '—'}
-            </p>
-          </div>
-          <div>
-            <span className="text-[10px] text-[#64748B] uppercase tracking-widest block">
-              Est. Calories
-            </span>
-            <p className="font-display font-bold text-base text-[#34D399]">
-              {session?.caloriesBurned || 4} kcal
-            </p>
+            <div className="text-xs text-text-muted uppercase font-semibold">Journey Progress</div>
+            <div className="text-sm font-bold text-text-primary">
+              {Math.round(journeyPercent)}% Complete
+            </div>
           </div>
         </div>
-      </GlassCard>
+        <Button variant="secondary" size="sm" onClick={() => navigate('/journey')}>
+          View Journey <ArrowRight className="w-3.5 h-3.5 ml-1" />
+        </Button>
+      </Surface>
 
-      {/* Breakdown Rows matching the reference screenshot layout */}
-      <div className="space-y-3">
-        <h3 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
-          Joint Alignment Breakdown
-        </h3>
-
-        <div className="space-y-3">
-          {categoryList.map((cat, idx) => {
-            const isGood = cat.score >= 85;
-            const barColor = isGood ? 'from-[#22C55E] to-[#34D399]' : 'from-[#F59E0B] to-[#FBBF24]';
-            const textColor = isGood ? 'text-[#34D399]' : 'text-[#F59E0B]';
-
-            return (
-              <div key={idx} className="space-y-1.5 p-3 rounded-2xl bg-[#151B24] border border-white/8">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-[#F5F7FA]">{cat.category}</span>
-                  <span className={`font-display font-extrabold ${textColor}`}>{cat.score}/100</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-white/5 border border-white/10 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${barColor}`}
-                    style={{ width: `${cat.score}%` }}
+      {/* Category Breakdown & Joint Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Category Breakdown */}
+        <Surface variant="raised" className="p-6 space-y-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+            Anatomical Category Breakdown
+          </h3>
+          <div className="space-y-3">
+            {Object.entries(summary.categoryBreakdown).map(([catKey, score]) => {
+              if (catKey === 'overall') return null;
+              return (
+                <div key={catKey} className="space-y-1">
+                  <div className="flex justify-between text-xs font-medium">
+                    <span className="text-text-secondary">
+                      {categoryNames[catKey] || catKey}
+                    </span>
+                    <span className="font-semibold tabular-nums">{score}%</span>
+                  </div>
+                  <Meter
+                    value={score}
+                    max={100}
+                    variant={score >= 80 ? 'good' : score >= 60 ? 'slight' : 'poor'}
                   />
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </Surface>
+
+        {/* Form Feedback & Coaching Summary */}
+        <Surface variant="raised" className="p-6 space-y-4 flex flex-col justify-between">
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+              Form Feedback Tips
+            </h3>
+            <div className="flex items-center space-x-3 text-xs">
+              <span className="flex items-center text-success-500 font-semibold">
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> {goodCount} Good
+              </span>
+              <span className="flex items-center text-warning-500 font-semibold">
+                <AlertTriangle className="w-3.5 h-3.5 mr-1" /> {slightCount} Slight
+              </span>
+              <span className="flex items-center text-danger-500 font-semibold">
+                <AlertTriangle className="w-3.5 h-3.5 mr-1" /> {poorCount} Poor
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {summary.feedbackTips.slice(0, 3).map((tip, idx) => (
+                <div
+                  key={idx}
+                  className="p-2.5 rounded-xl bg-surface-2 border border-surface-border text-xs text-text-secondary flex items-start space-x-2"
+                >
+                  <span className="text-primary-400 font-bold">•</span>
+                  <span>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Surface>
       </div>
 
-      {/* Actions */}
-      <div className="space-y-3 pt-2">
-        <GlassButton
-          onClick={() => navigate(`/feedback/${sessionId || 'latest'}`)}
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
+        <Button
+          variant="secondary"
+          size="lg"
+          className="w-full sm:w-auto flex-1"
+          onClick={() => navigate(`/live/${summary.poseId}`)}
+        >
+          <RotateCcw className="w-4 h-4 mr-2" /> Practise Again
+        </Button>
+        <Button
           variant="primary"
           size="lg"
-          fullWidth
-          rightIcon={<ArrowRight className="w-5 h-5" />}
+          className="w-full sm:w-auto flex-1 shadow-lg shadow-primary-500/20"
+          onClick={() => navigate('/journey')}
         >
-          View Detailed Posture Tips
-        </GlassButton>
-
-        <div className="grid grid-cols-2 gap-3">
-          <GlassButton
-            onClick={() => navigate(`/live/${session?.poseId || 'tadasana'}`)}
-            variant="secondary"
-            size="md"
-            leftIcon={<RotateCcw className="w-4 h-4" />}
-          >
-            Practice Again
-          </GlassButton>
-
-          <GlassButton
-            onClick={() => alert('Posture alignment card saved to clipboard!')}
-            variant="secondary"
-            size="md"
-            leftIcon={<Share2 className="w-4 h-4" />}
-          >
-            Share Score
-          </GlassButton>
-        </div>
+          Continue Journey <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
       </div>
     </div>
   );

@@ -1,99 +1,142 @@
 @import "@fontsource/inter/400.css";
 @import "@fontsource/inter/500.css";
 @import "@fontsource/inter/600.css";
-@import "@fontsource/manrope/400.css";
-@import "@fontsource/manrope/600.css";
-@import "@fontsource/manrope/700.css";
-@import "@fontsource/manrope/800.css";
+@import "@fontsource/fraunces/400.css";
+@import "@fontsource/fraunces/600.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Design Tokens ─── */
+:root {
+  /* Dark Theme (default) */
+  --bg: #0B0B0D;
+  --bg-elev: #121215;
+  --surface: #17171B;
+  --surface-2: #1E1E23;
+  --raised: #26262C;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --text: #F6F6F7;
+  --text-2: rgba(246, 246, 247, 0.64);
+  --text-3: rgba(246, 246, 247, 0.40);
+
+  --accent: #4C6FFF;
+  --accent-hover: #3D5CF0;
+  --accent-soft: rgba(76, 111, 255, 0.14);
+  --accent-fg: #FFFFFF;
+
+  --good: #2ECC8B;
+  --slight: #F0B429;
+  --poor: #F2645A;
+  --good-soft: rgba(46, 204, 139, 0.14);
+  --slight-soft: rgba(240, 180, 41, 0.14);
+  --poor-soft: rgba(242, 100, 90, 0.14);
+
+  /* Journey Tier Colors */
+  --tier-ground: #A1A1AA;
+  --tier-breath: #5E9FE8;
+  --tier-balance: #4C6FFF;
+  --tier-strength: #A78BFA;
+  --tier-mastery: #E9B949;
+
+  /* Shadows */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.24), 0 4px 12px rgba(0, 0, 0, 0.16);
+  --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.28);
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-state: 120ms;
+  --dur-enter: 200ms;
+  --dur-sheet: 320ms;
+
+  /* Radii */
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-sheet: 20px;
+  --radius-hero: 28px;
+  --radius-pill: 9999px;
+
+  /* Typography */
+  --font-display: 'Fraunces', serif;
+  --font-ui: 'Inter', sans-serif;
+
+  color-scheme: dark;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg: #FAFAF9;
+  --bg-elev: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-2: #F3F3F1;
+  --raised: #FFFFFF;
+  --border: #E6E5E1;
+  --border-strong: #D2D1CC;
+
+  --text: #16161A;
+  --text-2: #5B5B65;
+  --text-3: #8A8A93;
+
+  --accent: #2F55E0;
+  --accent-hover: #2647C4;
+  --accent-soft: rgba(47, 85, 224, 0.10);
+  --accent-fg: #FFFFFF;
+
+  --good: #16A46A;
+  --slight: #B97800;
+  --poor: #D93B2F;
+  --good-soft: rgba(22, 164, 106, 0.10);
+  --slight-soft: rgba(185, 120, 0, 0.10);
+  --poor-soft: rgba(217, 59, 47, 0.10);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.08);
+
+  color-scheme: light;
+}
+
 @layer base {
   body {
-    @apply bg-bg-darkest text-text-primary font-sans antialiased min-h-screen overflow-x-hidden selection:bg-accent-emerald/30 selection:text-accent-mint;
-    background-color: #0A0E14;
+    font-family: var(--font-ui);
+    background-color: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Manrope', sans-serif;
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
   }
-}
 
-/* Static fine film-grain overlay */
-.bg-grain {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.025'/%3E%3C/svg%3E");
-}
+  /* Ensure tabular numbers for metrics */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
 
-/* Liquid Glass Cards with Soft Warm Amber Specular Highlight Sweep */
-.glass-panel {
-  background: rgba(21, 27, 36, 0.90);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.55);
-  position: relative;
-  overflow: hidden;
-}
+  /* Focus ring */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-control);
+  }
 
-.glass-panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.18) 50%, rgba(255, 255, 255, 0) 100%);
-  pointer-events: none;
-}
+  /* Minimum touch target */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
 
-/* Soft Amber Light Streak Mount Animation */
-.glass-panel::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 45%,
-    rgba(245, 158, 11, 0.06) 50%,
-    transparent 55%
-  );
-  pointer-events: none;
-  animation: liquidSweep 700ms ease-out forwards;
-}
-
-.glass-panel-focal {
-  background: rgba(21, 27, 36, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.65);
-  position: relative;
-  overflow: hidden;
-}
-
-.glass-panel-focal::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 255, 255, 0.25) 50%, rgba(245, 158, 11, 0.1) 100%);
-  pointer-events: none;
-}
-
-/* Warm Amber-tinted Frosted Modal/Overlay Surface */
-.glass-amber-modal {
-  background: rgba(15, 22, 32, 0.92);
-  border: 1px solid rgba(245, 158, 11, 0.20);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  box-shadow: 0 20px 60px 0 rgba(0, 0, 0, 0.75), 0 0 30px 0 rgba(245, 158, 11, 0.08);
+  /* Exception for inline/compact buttons that set their own size */
+  .compact-touch {
+    min-height: unset;
+    min-width: unset;
+  }
 }
 
 /* Custom scrollbars */
@@ -103,14 +146,33 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(10, 14, 20, 0.9);
+  background: var(--bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border-strong);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(34, 197, 94, 0.4);
+  background: var(--text-3);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Safe area insets */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
 }

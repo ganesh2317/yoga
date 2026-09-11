@@ -1,105 +1,209 @@
 import React, { useEffect, useRef } from 'react';
-import type { JointLandmark } from '../types';
+import { POSE_CONNECTIONS, LM } from '../lib/poseTopology';
+import { toDisplayX } from '../lib/mirror';
+import type { JointLandmark, JointStatus } from '../types';
 
 interface SkeletonOverlayCanvasProps {
   landmarks: JointLandmark[] | null;
-  width: number;
-  height: number;
-  jointScores?: Record<string, number>;
+  videoElement?: HTMLVideoElement | null;
+  jointStatuses?: Record<string, JointStatus>;
+  isMirrored?: boolean;
 }
 
-// MediaPipe 33 landmark connections
-const POSE_CONNECTIONS = [
-  // Torso
-  [11, 12], [11, 23], [12, 24], [23, 24],
-  // Left arm
-  [11, 13], [13, 15],
-  // Right arm
-  [12, 14], [14, 16],
-  // Left leg
-  [23, 25], [25, 27],
-  // Right leg
-  [24, 26], [26, 28],
-];
+// Map joints to landmark index for status coloring
+const JOINT_TO_LM_INDEX: Record<string, number[]> = {
+  neckTilt: [LM.NOSE],
+  headYaw: [LM.NOSE],
+  shoulderLevel: [LM.LEFT_SHOULDER, LM.RIGHT_SHOULDER],
+  leftShoulder: [LM.LEFT_SHOULDER],
+  rightShoulder: [LM.RIGHT_SHOULDER],
+  leftElbow: [LM.LEFT_ELBOW],
+  rightElbow: [LM.RIGHT_ELBOW],
+  leftWrist: [LM.LEFT_WRIST],
+  rightWrist: [LM.RIGHT_WRIST],
+  spineUpper: [LM.LEFT_SHOULDER, LM.RIGHT_SHOULDER],
+  spineLower: [LM.LEFT_HIP, LM.RIGHT_HIP],
+  torsoLean: [LM.LEFT_SHOULDER, LM.RIGHT_SHOULDER, LM.LEFT_HIP, LM.RIGHT_HIP],
+  hipLevel: [LM.LEFT_HIP, LM.RIGHT_HIP],
+  leftHip: [LM.LEFT_HIP],
+  rightHip: [LM.RIGHT_HIP],
+  leftKnee: [LM.LEFT_KNEE],
+  rightKnee: [LM.RIGHT_KNEE],
+  leftAnkle: [LM.LEFT_ANKLE],
+  rightAnkle: [LM.RIGHT_ANKLE],
+  stanceWidth: [LM.LEFT_ANKLE, LM.RIGHT_ANKLE],
+};
+
+const STATUS_COLORS: Record<JointStatus, string> = {
+  Good: '#22c55e',
+  Slight: '#f59e0b',
+  Poor: '#ef4444',
+  Unknown: '#94a3b8',
+};
 
 export const SkeletonOverlayCanvas: React.FC<SkeletonOverlayCanvasProps> = ({
   landmarks,
-  width,
-  height,
+  videoElement,
+  jointStatuses = {},
+  isMirrored = true,
 }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
+    const container = containerRef.current;
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!container || !canvas) return;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // Handle high-DPI crisp rendering & ResizeObserver
+    const updateCanvasSize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    updateCanvasSize();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateCanvasSize();
+    });
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = container.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
 
     // Clear previous frame
     ctx.clearRect(0, 0, width, height);
 
     if (!landmarks || landmarks.length === 0) return;
 
-    // 1. Draw connection background lines (high performance glow simulation)
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = 'rgba(34, 197, 94, 0.25)';
-    ctx.lineCap = 'round';
-    POSE_CONNECTIONS.forEach(([i, j]) => {
-      const p1 = landmarks[i];
-      const p2 = landmarks[j];
+    // Compute object-fit: cover mapping
+    // Given video aspect ratio (videoWidth / videoHeight) vs container aspect ratio (width / height)
+    let videoAspect = 4 / 3;
+    if (videoElement && videoElement.videoWidth && videoElement.videoHeight) {
+      videoAspect = videoElement.videoWidth / videoElement.videoHeight;
+    }
+    const containerAspect = width / height;
 
-      if (p1 && p2 && (p1.visibility ?? 1) > 0.4 && (p2.visibility ?? 1) > 0.4) {
+    let scale = 1;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (containerAspect > videoAspect) {
+      // Container is wider than video -> scale by width, crop top/bottom
+      scale = width;
+      const renderedHeight = width / videoAspect;
+      offsetY = (height - renderedHeight) / 2;
+    } else {
+      // Container is taller than video -> scale by height, crop left/right
+      scale = height * videoAspect;
+      offsetX = (width - scale) / 2;
+    }
+
+    const mapLandmark = (lm: JointLandmark) => {
+      let normX = lm.x;
+      if (isMirrored) {
+        normX = toDisplayX(normX);
+      }
+      const px = offsetX + normX * scale;
+      const py = offsetY + lm.y * (scale / videoAspect);
+      return { x: px, y: py, visibility: lm.visibility ?? 1 };
+    };
+
+    const mapped = landmarks.map(mapLandmark);
+
+    // Build reverse map of landmark index -> joint status
+    const lmStatusMap: Record<number, JointStatus> = {};
+    for (const [jointKey, status] of Object.entries(jointStatuses)) {
+      const indices = JOINT_TO_LM_INDEX[jointKey];
+      if (indices) {
+        for (const idx of indices) {
+          // Keep the worst status if multiple joints touch this landmark
+          const existing = lmStatusMap[idx];
+          if (!existing || status === 'Poor' || (status === 'Slight' && existing === 'Good')) {
+            lmStatusMap[idx] = status;
+          }
+        }
+      }
+    }
+
+    // 1. Draw Bones / Connections
+    POSE_CONNECTIONS.forEach(([i, j]) => {
+      const p1 = mapped[i];
+      const p2 = mapped[j];
+
+      if (p1 && p2 && p1.visibility > 0.35 && p2.visibility > 0.35) {
+        const isLowConf = p1.visibility < 0.6 || p2.visibility < 0.6;
+        const s1 = lmStatusMap[i] || 'Good';
+        const s2 = lmStatusMap[j] || 'Good';
+
+        let strokeColor = 'rgba(34, 197, 94, 0.75)'; // default good
+        if (s1 === 'Poor' || s2 === 'Poor') {
+          strokeColor = 'rgba(239, 68, 68, 0.85)';
+        } else if (s1 === 'Slight' || s2 === 'Slight') {
+          strokeColor = 'rgba(245, 158, 11, 0.85)';
+        }
+
+        ctx.save();
         ctx.beginPath();
-        ctx.moveTo(p1.x * width, p1.y * height);
-        ctx.lineTo(p2.x * width, p2.y * height);
+        if (isLowConf) {
+          ctx.setLineDash([4, 4]);
+        }
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = strokeColor;
+        ctx.lineCap = 'round';
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
         ctx.stroke();
+        ctx.restore();
       }
     });
 
-    // 2. Draw sharp inner emerald lines
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#34D399';
-    POSE_CONNECTIONS.forEach(([i, j]) => {
-      const p1 = landmarks[i];
-      const p2 = landmarks[j];
+    // 2. Draw Landmark Nodes
+    mapped.forEach((pt, idx) => {
+      if (pt.visibility > 0.35) {
+        const status = lmStatusMap[idx] || 'Good';
+        const color = STATUS_COLORS[status];
 
-      if (p1 && p2 && (p1.visibility ?? 1) > 0.4 && (p2.visibility ?? 1) > 0.4) {
+        // Outer aura
         ctx.beginPath();
-        ctx.moveTo(p1.x * width, p1.y * height);
-        ctx.lineTo(p2.x * width, p2.y * height);
-        ctx.stroke();
-      }
-    });
-
-    // 3. Draw key joint nodes
-    const keyLandmarkIndices = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28];
-    keyLandmarkIndices.forEach((idx) => {
-      const p = landmarks[idx];
-      if (p && (p.visibility ?? 1) > 0.4) {
-        const x = p.x * width;
-        const y = p.y * height;
-
-        // Outer amber ring
-        ctx.beginPath();
-        ctx.arc(x, y, 6, 0, 2 * Math.PI);
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.4)';
+        ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.globalAlpha = Math.min(1, pt.visibility * 0.9);
         ctx.fill();
 
-        // Inner solid emerald dot
+        // Inner bright core
         ctx.beginPath();
-        ctx.arc(x, y, 3.5, 0, 2 * Math.PI);
-        ctx.fillStyle = '#34D399';
+        ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 1;
         ctx.fill();
       }
     });
-  }, [landmarks, width, height]);
+  }, [landmarks, videoElement, jointStatuses, isMirrored]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
-      className="absolute inset-0 w-full h-full pointer-events-none z-10"
-    />
+    <div ref={containerRef} className="absolute inset-0 pointer-events-none w-full h-full overflow-hidden">
+      <canvas ref={canvasRef} className="block w-full h-full" />
+    </div>
   );
 };

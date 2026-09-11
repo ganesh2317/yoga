@@ -1,125 +1,201 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Flame, Target, Shield } from 'lucide-react';
-import { GlassButton } from '../components/GlassButton';
-import { GlassCard } from '../components/GlassCard';
+import {
+  Moon,
+  Sun,
+  Laptop,
+  LogOut,
+  Cpu,
+} from 'lucide-react';
+import { Surface } from '../components/ui/Surface';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 import { TopBar } from '../components/TopBar';
 import { useAuthStore } from '../store/useAuthStore';
-import { useSessionStore } from '../store/useSessionStore';
+import { getTheme, setTheme, type Theme } from '../lib/theme';
+import { getActiveModelTier } from '../lib/mediaPipeLoader';
+import { saveUser, getUserSettings, saveUserSettings } from '../services/db';
 
 export const ProfileScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout, updateDailyGoal } = useAuthStore();
-  const { streak } = useSessionStore();
-  const [goal, setGoal] = useState(user?.dailyGoalMinutes || 20);
-  const [isSaved, setIsSaved] = useState(false);
+  const { user, logout } = useAuthStore();
 
-  const handleSaveGoal = async () => {
-    await updateDailyGoal(goal);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+  const [currentTheme, setCurrentThemeState] = useState<Theme>(getTheme());
+  const [dailyGoal, setDailyGoal] = useState<number>(user?.dailyGoalMinutes || 20);
+  const [audioFeedback, setAudioFeedback] = useState<boolean>(true);
+  const [modelTier] = useState<string>(getActiveModelTier() || 'mid');
+
+  useEffect(() => {
+    if (user) {
+      getUserSettings(user.id).then((settings) => {
+        if (settings) {
+          if (settings.theme) setCurrentThemeState(settings.theme);
+          setAudioFeedback(settings.audioFeedbackEnabled ?? true);
+        }
+      });
+    }
+  }, [user]);
+
+  const handleThemeChange = (newTheme: Theme) => {
+    setCurrentThemeState(newTheme);
+    setTheme(newTheme);
+    if (user) {
+      saveUserSettings({
+        userId: user.id,
+        dailyGoalMinutes: dailyGoal,
+        audioFeedbackEnabled: audioFeedback,
+        theme: newTheme,
+        updatedAt: new Date().toISOString(),
+      });
+    }
   };
 
-  const handleLogout = async () => {
-    await logout();
+  const handleGoalChange = async (mins: number) => {
+    setDailyGoal(mins);
+    if (user) {
+      const updated = { ...user, dailyGoalMinutes: mins };
+      await saveUser(updated as any);
+      await saveUserSettings({
+        userId: user.id,
+        dailyGoalMinutes: mins,
+        audioFeedbackEnabled: audioFeedback,
+        theme: currentTheme,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
     navigate('/login');
   };
 
   return (
-    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">
-      <TopBar title="User Profile" showBack onBack={() => navigate('/home')} />
+    <div className="min-h-screen bg-background text-text-primary p-4 md:p-8 max-w-3xl mx-auto space-y-6 pb-28">
+      <TopBar />
 
-      {/* User Header Focal Card */}
-      <GlassCard variant="focal" glowColor="emerald" className="p-6 text-center flex flex-col items-center space-y-3">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#22C55E] to-[#34D399] border-2 border-[#34D399]/50 text-[#0A0E14] flex items-center justify-center font-display font-extrabold text-3xl shadow-lg shadow-[#22C55E]/30">
-          {user?.name ? user.name.charAt(0).toUpperCase() : 'Y'}
+      <div>
+        <Badge variant="accent">
+          Settings & Account
+        </Badge>
+        <h1 className="text-3xl font-display font-bold text-text-primary mt-1">
+          Profile & Preferences
+        </h1>
+      </div>
+
+      {/* User Information Card */}
+      <Surface variant="raised" className="p-6 flex items-center space-x-4">
+        <div className="w-14 h-14 rounded-2xl bg-primary-500/15 text-primary-400 flex items-center justify-center font-bold text-xl">
+          {user?.name ? user.name[0].toUpperCase() : 'Y'}
         </div>
-
-        <div>
-          <h2 className="font-display font-extrabold text-2xl text-[#F5F7FA]">
-            {user?.name || 'Yogi Practitioner'}
+        <div className="flex-1">
+          <h2 className="text-lg font-bold text-text-primary">
+            {user?.name || 'Practitioner'}
           </h2>
-          <p className="text-xs text-[#94A3B8] font-medium">{user?.email || 'yogi@yogasense.ai'}</p>
+          <p className="text-xs text-text-muted">{user?.email || 'guest@yogasense.ai'}</p>
         </div>
+      </Surface>
 
-        <div className="flex items-center gap-2 pt-1">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F59E0B]/15 border border-[#F59E0B]/30 text-[#FBBF24] text-xs font-bold">
-            <Flame className="w-4 h-4 text-[#F59E0B] fill-[#F59E0B]" />
-            <span>{streak.currentStreak} Day Streak</span>
-          </div>
+      {/* Theme Selection */}
+      <Surface variant="raised" className="p-6 space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+          Appearance Theme
+        </h3>
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            onClick={() => handleThemeChange('dark')}
+            className={`flex flex-col items-center p-3 rounded-xl border text-xs font-semibold transition-all ${
+              currentTheme === 'dark'
+                ? 'bg-primary-500/15 border-primary-500 text-primary-400'
+                : 'bg-surface-2 border-surface-border text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <Moon className="w-5 h-5 mb-1" />
+            <span>Dark</span>
+          </button>
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#22C55E]/15 border border-[#22C55E]/30 text-[#34D399] text-xs font-bold">
-            <Shield className="w-4 h-4 text-[#34D399]" />
-            <span>Local IndexedDB</span>
-          </div>
+          <button
+            onClick={() => handleThemeChange('light')}
+            className={`flex flex-col items-center p-3 rounded-xl border text-xs font-semibold transition-all ${
+              currentTheme === 'light'
+                ? 'bg-primary-500/15 border-primary-500 text-primary-400'
+                : 'bg-surface-2 border-surface-border text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <Sun className="w-5 h-5 mb-1" />
+            <span>Light</span>
+          </button>
+
+          <button
+            onClick={() => handleThemeChange('system')}
+            className={`flex flex-col items-center p-3 rounded-xl border text-xs font-semibold transition-all ${
+              currentTheme === 'system'
+                ? 'bg-primary-500/15 border-primary-500 text-primary-400'
+                : 'bg-surface-2 border-surface-border text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <Laptop className="w-5 h-5 mb-1" />
+            <span>System</span>
+          </button>
         </div>
-      </GlassCard>
+      </Surface>
 
-      {/* Daily Goal Settings Card */}
-      <GlassCard className="p-5 space-y-4">
+      {/* Daily Goal Preferences */}
+      <Surface variant="raised" className="p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-[#F59E0B] stroke-[1.75px]" />
-            <h3 className="font-display font-bold text-base text-[#F5F7FA]">
-              Daily Goal Minutes
-            </h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+            Daily Practice Target
+          </h3>
+          <span className="text-sm font-bold text-primary-400 tabular-nums">
+            {dailyGoal} Minutes
+          </span>
+        </div>
+
+        <input
+          type="range"
+          min="5"
+          max="60"
+          step="5"
+          value={dailyGoal}
+          onChange={(e) => handleGoalChange(Number(e.target.value))}
+          className="w-full accent-primary-500 cursor-pointer"
+        />
+        <div className="flex justify-between text-[11px] text-text-muted">
+          <span>5 min</span>
+          <span>20 min</span>
+          <span>60 min</span>
+        </div>
+      </Surface>
+
+      {/* Hardware & Diagnostics */}
+      <Surface variant="raised" className="p-6 space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+          Vision Engine Diagnostics
+        </h3>
+        <div className="space-y-2 text-xs">
+          <div className="flex justify-between py-1 border-b border-surface-border">
+            <span className="text-text-secondary flex items-center">
+              <Cpu className="w-4 h-4 mr-1.5 text-primary-400" /> Model Tier Selected
+            </span>
+            <span className="font-semibold uppercase text-primary-400">{modelTier}</span>
           </div>
-          <span className="font-display font-bold text-lg text-[#F59E0B]">{goal} min</span>
-        </div>
-
-        <div className="space-y-2">
-          <input
-            type="range"
-            min={5}
-            max={60}
-            step={5}
-            value={goal}
-            onChange={(e) => setGoal(Number(e.target.value))}
-            className="w-full accent-[#22C55E] bg-white/10 h-2 rounded-lg cursor-pointer"
-          />
-          <div className="flex justify-between text-[10px] text-[#64748B]">
-            <span>5 mins</span>
-            <span>30 mins</span>
-            <span>60 mins</span>
+          <div className="flex justify-between py-1 border-b border-surface-border">
+            <span className="text-text-secondary">Filtering Engine</span>
+            <span className="font-semibold">One-Euro Adaptive Filter</span>
+          </div>
+          <div className="flex justify-between py-1">
+            <span className="text-text-secondary">Measurement Space</span>
+            <span className="font-semibold">Metric World Coordinates</span>
           </div>
         </div>
-
-        <GlassButton
-          onClick={handleSaveGoal}
-          variant="primary"
-          size="md"
-          fullWidth
-        >
-          {isSaved ? 'Goal Saved!' : 'Update Practice Goal'}
-        </GlassButton>
-      </GlassCard>
-
-      {/* App Info Card */}
-      <GlassCard className="p-4 space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-[#64748B]">Vision Engine</span>
-          <span className="text-[#F5F7FA] font-semibold">MediaPipe PoseLandmarker (Heavy GPU)</span>
-        </div>
-        <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2">
-          <span className="text-[#64748B]">Persistence</span>
-          <span className="text-[#F5F7FA] font-semibold">IndexedDB (idb v8)</span>
-        </div>
-        <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2">
-          <span className="text-[#64748B]">Version</span>
-          <span className="text-[#F59E0B] font-mono font-bold">Round 4 Refined v4.0</span>
-        </div>
-      </GlassCard>
+      </Surface>
 
       {/* Logout Action */}
-      <GlassButton
-        onClick={handleLogout}
-        variant="danger"
-        size="lg"
-        fullWidth
-        leftIcon={<LogOut className="w-5 h-5" />}
-      >
-        Sign Out
-      </GlassButton>
+      <div className="pt-2">
+        <Button variant="danger" size="md" className="w-full" onClick={handleLogout}>
+          <LogOut className="w-4 h-4 mr-2" /> Log Out
+        </Button>
+      </div>
     </div>
   );
 };

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Volume2, VolumeX, Sparkles, CheckCircle2, RotateCcw, Home } from 'lucide-react';
-import { BodySkeletonDiagram } from '../components/BodySkeletonDiagram';
-import { GlassButton } from '../components/GlassButton';
-import { GlassCard } from '../components/GlassCard';
-import { StatusBadge } from '../components/StatusBadge';
+import { Volume2, VolumeX, CheckCircle2, Home, ArrowLeft } from 'lucide-react';
+import { Surface } from '../components/ui/Surface';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { StatusPill } from '../components/ui/StatusPill';
 import { TopBar } from '../components/TopBar';
 import { getAllSessions, getSessionById, getUserSessions } from '../services/db';
 import { useAuthStore } from '../store/useAuthStore';
@@ -42,147 +42,115 @@ export const FeedbackScreen: React.FC = () => {
     'Keep your standing foot firmly grounded through all four corners.',
   ];
 
-  const jointEvalMap: Record<string, JointEvaluation> = session?.jointEvaluations || {
-    leftKnee: { jointKey: 'leftKnee', displayName: 'Left Knee', status: 'Good', actualAngle: 176, targetAngle: 178, tolerance: 10, deviation: 2, score: 98 },
-    rightKnee: { jointKey: 'rightKnee', displayName: 'Right Knee', status: 'Good', actualAngle: 175, targetAngle: 178, tolerance: 10, deviation: 3, score: 97 },
-    leftShoulder: { jointKey: 'leftShoulder', displayName: 'Left Shoulder', status: 'Slight', actualAngle: 152, targetAngle: 170, tolerance: 20, deviation: 18, score: 75 },
-    rightShoulder: { jointKey: 'rightShoulder', displayName: 'Right Shoulder', status: 'Slight', actualAngle: 154, targetAngle: 170, tolerance: 20, deviation: 16, score: 78 },
-  };
+  const jointList: JointEvaluation[] = Object.values(session?.jointEvaluations || {});
 
-  const jointList = Object.values(jointEvalMap);
-
-  const speakTips = () => {
-    if (!('speechSynthesis' in window)) {
-      alert('Speech Synthesis is not supported in this browser.');
-      return;
-    }
+  const toggleSpeech = () => {
+    if (!('speechSynthesis' in window)) return;
 
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
-      return;
+    } else {
+      const text = tips.join('. ');
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+      setIsSpeaking(true);
     }
-
-    const textToRead = tips.join('. ');
-    const utterance = new SpeechSynthesisUtterance(textToRead);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    window.speechSynthesis.speak(utterance);
-    setIsSpeaking(true);
   };
 
   return (
-    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">
-      <TopBar title="Personalized Feedback" showBack onBack={() => navigate(-1)} />
+    <div className="min-h-screen bg-background text-text-primary p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-28">
+      <TopBar />
 
-      <div className="space-y-1">
-        <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-widest block">
-          AI Posture Analysis
-        </span>
-        <h2 className="font-display font-extrabold text-3xl text-[#F5F7FA]">
-          Personalized Tips
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <Badge variant="accent" size="md">
+            Biomechanical Diagnostics
+          </Badge>
+          <h1 className="text-3xl font-display font-bold text-text-primary mt-1">
+            Joint Form Breakdown
+          </h1>
+          {session && (
+            <p className="text-sm text-text-muted">
+              {session.poseName} • {session.averageScore}/100 Average Score
+            </p>
+          )}
+        </div>
+
+        <Button variant="secondary" size="md" onClick={toggleSpeech}>
+          {isSpeaking ? (
+            <>
+              <VolumeX className="w-4 h-4 mr-1.5" /> Stop Audio
+            </>
+          ) : (
+            <>
+              <Volume2 className="w-4 h-4 mr-1.5 text-primary-400" /> Read Feedback
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* AI Alignment Coaching Notes */}
+      <Surface variant="raised" className="p-6 space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+          AI Alignment Guidance
         </h2>
-        <p className="text-xs text-[#94A3B8]">
-          Plain-English corrective cues generated from your live session.
-        </p>
-      </div>
-
-      {/* Audio Player Card with Amber Frosted Blur */}
-      <GlassCard variant="focal" glowColor="amber" className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/20 border border-[#F59E0B]/40 text-[#F59E0B] flex items-center justify-center shrink-0">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="font-display font-bold text-sm text-[#F5F7FA]">Audio Guidance</h4>
-            <p className="text-[11px] text-[#94A3B8]">Listen to speech feedback reader</p>
-          </div>
-        </div>
-
-        <GlassButton
-          onClick={speakTips}
-          variant={isSpeaking ? 'danger' : 'warm'}
-          size="sm"
-          leftIcon={isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-        >
-          {isSpeaking ? 'Stop' : 'Listen'}
-        </GlassButton>
-      </GlassCard>
-
-      {/* Corrective Tips Cards */}
-      <div className="space-y-3">
-        <h3 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
-          Actionable Posture Cues
-        </h3>
-
-        <div className="space-y-2.5">
-          {tips.map((tip, idx) => (
-            <GlassCard key={idx} className="p-4 flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#34D399] shrink-0 mt-0.5" />
-              <p className="text-xs text-[#F5F7FA] leading-relaxed font-medium">
-                {tip}
-              </p>
-            </GlassCard>
-          ))}
-        </div>
-      </div>
-
-      {/* Interactive Body Joint Diagram */}
-      <div className="space-y-3 pt-2">
-        <h3 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
-          Interactive Joint Map
-        </h3>
-
-        <GlassCard className="p-5 flex flex-col items-center justify-center">
-          <BodySkeletonDiagram jointEvaluations={jointEvalMap} />
-          <span className="text-[10px] text-[#64748B] mt-3 font-medium">
-            Tap highlighted joint markers for target vs actual angles
-          </span>
-        </GlassCard>
-      </div>
-
-      {/* Joint Angle List */}
-      <div className="space-y-2">
-        <h3 className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest">
-          Joint Angle Measurements
-        </h3>
-
         <div className="space-y-2">
-          {jointList.map((je, i) => (
-            <GlassCard key={i} className="p-3.5 flex items-center justify-between">
-              <div>
-                <h4 className="font-display font-bold text-sm text-[#F5F7FA]">{je.displayName}</h4>
-                <p className="text-[11px] text-[#64748B]">
-                  Target: {je.targetAngle}° • Actual: {Math.round(je.actualAngle)}°
-                </p>
-              </div>
-              <StatusBadge status={je.status} size="sm" />
-            </GlassCard>
+          {tips.map((tip, idx) => (
+            <div
+              key={idx}
+              className="p-3 bg-surface-2 rounded-xl border border-surface-border text-xs md:text-sm text-text-secondary flex items-start space-x-2"
+            >
+              <CheckCircle2 className="w-4 h-4 text-primary-400 flex-shrink-0 mt-0.5" />
+              <span>{tip}</span>
+            </div>
           ))}
         </div>
-      </div>
+      </Surface>
 
-      {/* Bottom Action Buttons */}
-      <div className="grid grid-cols-2 gap-3 pt-2">
-        <GlassButton
-          onClick={() => navigate('/home')}
-          variant="secondary"
-          leftIcon={<Home className="w-4 h-4" />}
-        >
-          Return Home
-        </GlassButton>
+      {/* Joint Angle Measurements Table */}
+      <Surface variant="raised" className="p-6 space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+          Evaluated Joint Angles
+        </h2>
 
-        <GlassButton
-          onClick={() => navigate(`/live/${session?.poseId || 'tadasana'}`)}
-          variant="primary"
-          leftIcon={<RotateCcw className="w-4 h-4" />}
-        >
-          Practice Again
-        </GlassButton>
+        {jointList.length === 0 ? (
+          <p className="text-xs text-text-muted text-center py-4">
+            No joint metrics recorded for this session.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {jointList.map((j) => (
+              <div
+                key={j.jointKey}
+                className="p-3 bg-surface-2 rounded-xl border border-surface-border flex items-center justify-between text-xs"
+              >
+                <div>
+                  <div className="font-semibold text-text-primary">
+                    {j.displayName}
+                  </div>
+                  <div className="text-[11px] text-text-muted tabular-nums">
+                    Actual: {Math.round(j.actualAngle)}° • Target: {j.targetAngle}°
+                  </div>
+                </div>
+
+                <StatusPill status={j.status} size="sm" />
+              </div>
+            ))}
+          </div>
+        )}
+      </Surface>
+
+      <div className="flex gap-4">
+        <Button variant="secondary" size="md" onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-4 h-4 mr-1.5" /> Go Back
+        </Button>
+        <Button variant="primary" size="md" onClick={() => navigate('/')}>
+          <Home className="w-4 h-4 mr-1.5" /> Return Home
+        </Button>
       </div>
     </div>
   );

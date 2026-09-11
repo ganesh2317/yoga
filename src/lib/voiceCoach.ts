@@ -1,5 +1,6 @@
-import type { JointEvaluation, JointStatus } from '../types';
+import type { FrameEvaluation, JointEvaluation, JointStatus, YogaPose } from '../types';
 import { JOINT_FEEDBACK_TEMPLATES } from './feedbackEngine';
+import { mirrorJointLabel } from './mirror';
 
 interface JointVoiceState {
   lastStatus: JointStatus;
@@ -57,34 +58,33 @@ class VoiceCoachService {
   public speak(text: string): void {
     if (this.isMuted || !('speechSynthesis' in window)) return;
 
-    // Prevent stack/queue buildup: cancel any current utterance before starting new one
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.95;
     utterance.pitch = 1.0;
 
-    utterance.onstart = () => {
-      this.isSpeaking = true;
-    };
-    utterance.onend = () => {
-      this.isSpeaking = false;
-    };
-    utterance.onerror = () => {
-      this.isSpeaking = false;
-    };
+    utterance.onstart = () => { this.isSpeaking = true; };
+    utterance.onend = () => { this.isSpeaking = false; };
+    utterance.onerror = () => { this.isSpeaking = false; };
 
     window.speechSynthesis.speak(utterance);
   }
 
+  public speakFeedback(evaluation: FrameEvaluation, _pose?: YogaPose): void {
+    this.processFrame(evaluation.jointEvaluations, evaluation.score);
+  }
+
   public processFrame(
     jointEvaluations: Record<string, JointEvaluation>,
-    overallScore: number
+    overallScore: number | null
   ): void {
     if (this.isMuted) return;
 
     const now = Date.now();
-    const evals = Object.values(jointEvaluations);
+    const evals = Object.values(jointEvaluations).filter(
+      (e) => e.status !== 'Unknown'
+    );
     if (evals.length === 0) return;
 
     interface Candidate {
@@ -112,7 +112,7 @@ class VoiceCoachService {
           (prev.lastStatus === 'Good' && (status === 'Slight' || status === 'Poor')) ||
           (prev.lastStatus === 'Slight' && status === 'Poor');
 
-        const cooldownElapsed = now - prev.lastSpokenTimestamp >= 13000; // 13 seconds cooldown
+        const cooldownElapsed = now - prev.lastSpokenTimestamp >= 13000;
 
         if (statusDegraded || cooldownElapsed) {
           candidates.push({
@@ -122,10 +122,10 @@ class VoiceCoachService {
           });
         }
       } else if (status === 'Good') {
-        // If a previously flagged joint just recovered to Good
         if (this.flaggedJoints.has(je.jointKey) && prev.lastStatus !== 'Good') {
           if (now - this.lastPositiveTime > 15000) {
-            this.speak(`Nice correction on your ${je.displayName.toLowerCase()}!`);
+            const displayName = mirrorJointLabel(je.jointKey);
+            this.speak(`Nice correction on your ${displayName.toLowerCase()}!`);
             this.lastPositiveTime = now;
             this.flaggedJoints.delete(je.jointKey);
           }
@@ -138,8 +138,8 @@ class VoiceCoachService {
       });
     });
 
-    // Handle sustained overall good posture praise
-    if (!hasPoorOrSlight && overallScore >= 85) {
+    // Sustained good posture praise
+    if (!hasPoorOrSlight && overallScore !== null && overallScore >= 85) {
       if (!this.goodHoldStartTime) {
         this.goodHoldStartTime = now;
       } else if (now - this.goodHoldStartTime >= 8000) {
@@ -153,7 +153,7 @@ class VoiceCoachService {
       this.goodHoldStartTime = null;
     }
 
-    // Pick single most significant candidate if any exist
+    // Pick single most significant candidate
     if (candidates.length > 0) {
       candidates.sort((a, b) => {
         if (a.isTransition !== b.isTransition) return a.isTransition ? -1 : 1;
@@ -162,6 +162,7 @@ class VoiceCoachService {
       });
 
       const chosen = candidates[0];
+      const displayKey = mirrorJointLabel(chosen.joint.jointKey);
       const tpl = JOINT_FEEDBACK_TEMPLATES[chosen.joint.jointKey];
       let phrase = '';
 
@@ -169,15 +170,18 @@ class VoiceCoachService {
         const list = chosen.joint.status === 'Poor' ? tpl.poor : tpl.slight;
         phrase = list[Math.floor(Math.random() * list.length)];
       } else {
-        phrase = `Adjust your ${chosen.joint.displayName.toLowerCase()}`;
+        phrase = `Adjust your ${displayKey.toLowerCase()}`;
       }
 
       this.speak(phrase);
 
-      this.jointStates.set(chosen.joint.jointKey, {
-        lastStatus: chosen.joint.status,
-        lastSpokenTimestamp: now,
-      });
+      // BUG #12 FIX: Update cooldown for ALL candidates considered, not just chosen
+      for (const candidate of candidates) {
+        this.jointStates.set(candidate.joint.jointKey, {
+          lastStatus: candidate.joint.status,
+          lastSpokenTimestamp: now,
+        });
+      }
     }
   }
 }

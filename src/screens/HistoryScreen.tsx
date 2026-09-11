@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, ChevronRight, History as HistoryIcon } from 'lucide-react';
-import { GlassCard } from '../components/GlassCard';
-import { StatusBadge } from '../components/StatusBadge';
+import { Calendar, History as HistoryIcon, ArrowRight } from 'lucide-react';
+import { Surface } from '../components/ui/Surface';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 import { TopBar } from '../components/TopBar';
-import { getAllSessions, getUserSessions } from '../services/db';
+import { getUserSessions, getAllSessions } from '../services/db';
 import { useAuthStore } from '../store/useAuthStore';
 import type { SessionSummary } from '../types';
 
@@ -29,77 +30,78 @@ export const HistoryScreen: React.FC = () => {
   }, [user]);
 
   return (
-    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">
-      <TopBar title="Session History" showBack onBack={() => navigate('/home')} />
+    <div className="min-h-screen bg-background text-text-primary p-4 md:p-8 max-w-4xl mx-auto space-y-6 pb-28">
+      <TopBar />
 
-      <div className="space-y-1">
-        <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-widest block">
+      <div>
+        <Badge variant="accent" size="md">
           Practice Log
-        </span>
-        <h2 className="font-display font-extrabold text-3xl text-[#F5F7FA]">
+        </Badge>
+        <h1 className="text-3xl font-display font-bold text-text-primary mt-1">
           Session History
-        </h2>
-        <p className="text-xs text-[#94A3B8]">
-          {sessions.length} recorded posture sessions in IndexedDB.
+        </h1>
+        <p className="text-sm text-text-muted">
+          {sessions.length} recorded posture sessions stored locally in your private IndexedDB.
         </p>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-xs text-[#64748B]">
-          Loading session logs...
+        <div className="text-center py-12 text-sm text-text-muted">
+          Loading practice records...
         </div>
       ) : sessions.length === 0 ? (
-        <GlassCard className="p-8 text-center space-y-3">
-          <HistoryIcon className="w-10 h-10 text-[#64748B] mx-auto stroke-[1.75px]" />
-          <h3 className="font-display font-bold text-lg text-[#F5F7FA]">
-            No Sessions Recorded
+        <Surface variant="raised" className="p-8 text-center space-y-3">
+          <HistoryIcon className="w-10 h-10 text-text-muted mx-auto" />
+          <h3 className="font-display font-bold text-lg text-text-primary">
+            No Sessions Recorded Yet
           </h3>
-          <p className="text-xs text-[#94A3B8]">
-            Start a live pose detection session to log your posture score history!
+          <p className="text-xs text-text-muted">
+            Start a live pose practice session to automatically record your form accuracy and holds!
           </p>
-        </GlassCard>
+          <Button variant="primary" onClick={() => navigate('/library')}>
+            Browse Poses
+          </Button>
+        </Surface>
       ) : (
         <div className="space-y-3">
-          {sessions.map((ses) => {
-            const status = ses.averageScore >= 85 ? 'Good' : ses.averageScore >= 65 ? 'Slight' : 'Poor';
-            return (
-              <GlassCard
-                key={ses.id}
-                variant="interactive"
-                onClick={() => navigate(`/score/${ses.id}`)}
-                className="p-4 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/12 flex items-center justify-center font-display font-extrabold text-[#34D399] text-lg shrink-0">
-                    {ses.averageScore}
-                  </div>
-                  <div>
-                    <h4 className="font-display font-bold text-base text-[#F5F7FA]">
-                      {ses.poseName}
-                    </h4>
-                    <div className="flex items-center gap-2 text-xs text-[#64748B] mt-0.5">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-[#64748B]" />
-                        {ses.dateString}
-                      </span>
-                      <span>•</span>
-                      <span>{Math.round(ses.durationSeconds / 60)} min</span>
-                    </div>
-                  </div>
+          {sessions.map((s) => (
+            <Surface
+              key={s.id}
+              variant="raised"
+              className="p-4 flex items-center justify-between hover:border-primary-500/40 transition-all cursor-pointer"
+              onClick={() => navigate('/score', { state: { summary: s } })}
+            >
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-bold text-base text-text-primary">
+                    {s.poseName}
+                  </h3>
+                  <Badge variant="default" size="sm">
+                    {Math.round(s.durationSeconds / 60)} min
+                  </Badge>
                 </div>
+                <div className="text-xs text-text-muted flex items-center space-x-3">
+                  <span className="flex items-center">
+                    <Calendar className="w-3.5 h-3.5 mr-1" />
+                    {s.dateString || s.timestamp.split('T')[0]}
+                  </span>
+                  <span>{s.caloriesBurned} kcal</span>
+                </div>
+              </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="flex flex-col items-end gap-1">
-                    <StatusBadge status={status} size="sm" />
-                    <span className="text-[10px] font-bold text-[#F59E0B]">
-                      {ses.accuracyPercent !== undefined ? `${ses.accuracyPercent}% Acc` : '— Acc'}
-                    </span>
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <div className="text-base font-bold text-primary-400 tabular-nums">
+                    {s.averageScore}/100
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[#64748B]" />
+                  <div className="text-[11px] text-text-muted">
+                    {s.accuracyPercent ?? s.averageScore}% Accuracy
+                  </div>
                 </div>
-              </GlassCard>
-            );
-          })}
+                <ArrowRight className="w-4 h-4 text-text-muted" />
+              </div>
+            </Surface>
+          ))}
         </div>
       )}
     </div>

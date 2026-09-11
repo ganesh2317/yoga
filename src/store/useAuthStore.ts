@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { UserProfile } from '../types';
 import { authService } from '../services/authService';
-import { getUserById, saveUser } from '../services/db';
+import { getUserById, saveUser, subscribeDBState, closeDB } from '../services/db';
 import { useSessionStore } from './useSessionStore';
 
 interface AuthStoreState {
@@ -10,6 +10,9 @@ interface AuthStoreState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  isBlocked: boolean;
+  blockedMessage: string | null;
+  isVersionChange: boolean;
 
   initialize: () => Promise<void>;
   login: (email: string, pass: string) => Promise<boolean>;
@@ -17,34 +20,108 @@ interface AuthStoreState {
   logout: () => Promise<void>;
   updateDailyGoal: (minutes: number) => void;
   clearError: () => void;
+  retry: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthStoreState>((set, get) => ({
-  user: null,
-  token: null,
-  isAuthenticated: false,
-  isLoading: true,
-  error: null,
+export const useAuthStore = create<AuthStoreState>((set, get) => {
+  // Subscribe to DB lifecycle events (blocked, version change)
+  subscribeDBState((dbState) => {
+    if (dbState.isBlocked) {
+      set({
+        isBlocked: true,
+        blockedMessage: dbState.message,
+        isLoading: false,
+        error: dbState.message,
+      });
+    } else if (dbState.isVersionChange) {
+      set({
+        isVersionChange: true,
+        blockedMessage: dbState.message,
+      });
+    }
+  });
 
-  initialize: async () => {
-    if (get().user && get().isAuthenticated) {
-      set({ isLoading: false });
-      return;
-    }
-    try {
-      set({ isLoading: true, error: null });
-      const session = await authService.getCurrentSession();
-      if (session) {
-        set({ user: session.user, token: session.token, isAuthenticated: true });
-      } else {
-        set({ user: null, token: null, isAuthenticated: false });
+  return {
+    user: null,
+    token: null,
+    isAuthenticated: false,
+    isLoading: true,
+    error: null,
+    isBlocked: false,
+    blockedMessage: null,
+    isVersionChange: false,
+
+    initialize: async () => {
+      if (get().user && get().isAuthenticated) {
+        set({ isLoading: false, isBlocked: false, error: null });
+        return;
       }
-    } catch (err: any) {
-      set({ error: err.message || 'Failed to restore session', isAuthenticated: false });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+
+      set({ isLoading: true, error: null, isBlocked: false, blockedMessage: null });
+
+      const SESSION_RESTORE_TIMEOUT_MS = 8000;
+      let timer: any = null;
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(
+            new Error(
+              'Session restoration timed out. If you have multiple YogaSense tabs open, please close them and reload.'
+            )
+          );
+        }, SESSION_RESTORE_TIMEOUT_MS);
+      });
+
+      try {
+        const session = await Promise.race([
+          authService.getCurrentSession(),
+          timeoutPromise,
+        ]);
+
+        clearTimeout(timer);
+
+        if (session) {
+          set({
+            user: session.user,
+            token: session.token,
+            isAuthenticated: true,
+            error: null,
+            isBlocked: false,
+            isLoading: false,
+          });
+        } else {
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            error: null,
+            isBlocked: false,
+            isLoading: false,
+          });
+        }
+      } catch (err: any) {
+        clearTimeout(timer);
+        console.error('Session restoration failed:', err);
+        const isBlockedMsg =
+          err?.message?.toLowerCase().includes('blocked') ||
+          err?.message?.toLowerCase().includes('other tab') ||
+          err?.message?.toLowerCase().includes('timed out');
+
+        set({
+          error: err.message || 'Failed to restore session',
+          isAuthenticated: false,
+          isBlocked: Boolean(isBlockedMsg),
+          blockedMessage: err.message || null,
+          isLoading: false,
+        });
+      }
+    },
+
+    retry: async () => {
+      closeDB();
+      set({ isLoading: true, error: null, isBlocked: false, blockedMessage: null });
+      await get().initialize();
+    },
 
   login: async (email, pass) => {
     try {
@@ -95,4 +172,5 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
-}));
+  };
+});

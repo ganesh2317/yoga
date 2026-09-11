@@ -1,225 +1,215 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { TrendingUp, Calendar } from 'lucide-react';
-import { GlassCard } from '../components/GlassCard';
+import {
+  Flame,
+  Award,
+  Clock,
+  ArrowRight,
+  TrendingUp,
+} from 'lucide-react';
+import { Surface } from '../components/ui/Surface';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { Ring } from '../components/ui/Ring';
+import { Stat } from '../components/ui/Stat';
 import { TopBar } from '../components/TopBar';
-import { getAllSessions, getUserSessions } from '../services/db';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSessionStore } from '../store/useSessionStore';
-import type { SessionSummary } from '../types';
+import { useJourneyStore } from '../store/useJourneyStore';
+import { JOURNEY_LEVELS } from '../data/journey';
+import { localDateKey } from '../lib/localDate';
 
 export const ProgressScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { streak } = useSessionStore();
-  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const { sessions, streak, fetchUserSessions } = useSessionStore();
+  const { currentLevel, journeyPercent, loadJourney } = useJourneyStore();
 
   useEffect(() => {
-    async function load() {
-      if (user?.id) {
-        const data = await getUserSessions(user.id);
-        setSessions(data);
-      } else {
-        const data = await getAllSessions();
-        setSessions(data);
-      }
+    if (user) {
+      fetchUserSessions(user.id, user.dailyGoalMinutes);
+      loadJourney(user.id);
     }
-    load();
-  }, [user]);
+  }, [user, fetchUserSessions, loadJourney]);
 
-  const chartData = sessions.slice(0, 7).reverse().map((s) => ({
-    date: s.dateString ? s.dateString.slice(5) : (s.timestamp ? s.timestamp.slice(5, 10) : 'Today'),
-    score: s.averageScore,
-    accuracy: s.accuracyPercent !== undefined ? s.accuracyPercent : null,
-    duration: Math.round(s.durationSeconds / 60),
-  }));
+  const activeLevelConfig =
+    JOURNEY_LEVELS.find((l) => l.level === currentLevel) || JOURNEY_LEVELS[0];
 
-  const avgScore =
-    sessions.length > 0
-      ? Math.round(sessions.reduce((acc, s) => acc + s.averageScore, 0) / sessions.length)
-      : 85;
+  // Compute Last 7 Days Activity
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const key = localDateKey(d);
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
 
-  const validAccuracySessions = sessions.filter((s) => s.accuracyPercent !== undefined);
-  const avgAccuracy =
-    validAccuracySessions.length > 0
-      ? Math.round(validAccuracySessions.reduce((acc, s) => acc + (s.accuracyPercent || 0), 0) / validAccuracySessions.length)
-      : null;
+    const dayMinutes = sessions
+      .filter((s) => (s.dateString || localDateKey(new Date(s.timestamp))) === key)
+      .reduce((sum, s) => sum + Math.round(s.durationSeconds / 60), 0);
+
+    return { dateKey: key, dayName, minutes: dayMinutes };
+  });
+
+  const maxDayMins = Math.max(20, ...last7Days.map((d) => d.minutes));
 
   return (
-    <div className="min-h-screen pb-28 pt-2 px-4 max-w-md mx-auto relative z-10 space-y-5">
-      <TopBar title="Analytics & Progress" showBack onBack={() => navigate('/home')} />
+    <div className="min-h-screen bg-background text-text-primary p-4 md:p-8 max-w-5xl mx-auto space-y-6 pb-28">
+      <TopBar />
 
-      <div className="space-y-1">
-        <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-widest block">
-          Practice Insights
-        </span>
-        <h2 className="font-display font-extrabold text-3xl text-[#F5F7FA]">
-          Analytics & Progress
-        </h2>
-        <p className="text-xs text-[#94A3B8]">
-          Track posture alignment and time-in-position accuracy trends.
+      <div>
+        <Badge variant="accent" size="md">
+          Performance Analytics
+        </Badge>
+        <h1 className="text-3xl font-display font-bold text-text-primary mt-1">
+          Your Practice Progress
+        </h1>
+        <p className="text-sm text-text-muted">
+          Track consistency, journey level advancements, and form accuracy over time.
         </p>
       </div>
 
-      {/* Hero Metrics Grid */}
-      <div className="grid grid-cols-4 gap-2">
-        <GlassCard variant="focal" glowColor="emerald" className="p-3 text-center">
-          <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-widest block mb-1">
-            Alignment
-          </span>
-          <p className="font-display font-extrabold text-2xl text-[#34D399]">
-            {avgScore}
+      {/* 1. Journey Summary Card First */}
+      <Surface
+        variant="raised"
+        className="p-6 bg-gradient-to-br from-surface-1 to-surface-2 border-primary-500/20 flex flex-col md:flex-row items-center justify-between gap-6"
+      >
+        <div className="space-y-2 text-center md:text-left">
+          <Badge variant="accent" size="sm">
+            {activeLevelConfig.tier} Tier
+          </Badge>
+          <h2 className="text-2xl font-display font-bold">
+            Level {currentLevel}: {activeLevelConfig.title}
+          </h2>
+          <p className="text-xs text-text-muted max-w-md">
+            {activeLevelConfig.description}
           </p>
-          <span className="text-[9px] text-[#94A3B8] font-medium mt-0.5 block">Avg Rating</span>
-        </GlassCard>
+        </div>
 
-        <GlassCard variant="focal" glowColor="amber" className="p-3 text-center">
-          <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-widest block mb-1">
-            Accuracy
-          </span>
-          <p className="font-display font-extrabold text-2xl text-[#F59E0B]">
-            {avgAccuracy !== null ? `${avgAccuracy}%` : '—'}
-          </p>
-          <span className="text-[9px] text-[#94A3B8] font-medium mt-0.5 block">In Position</span>
-        </GlassCard>
+        <div className="flex items-center space-x-6">
+          <Ring
+            value={journeyPercent}
+            size={90}
+            strokeWidth={8}
+            label={`${Math.round(journeyPercent)}%`}
+            variant="good"
+          />
+          <Button variant="primary" size="md" onClick={() => navigate('/journey')}>
+            Open Journey <ArrowRight className="w-4 h-4 ml-1.5" />
+          </Button>
+        </div>
+      </Surface>
 
-        <GlassCard className="p-3 text-center">
-          <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-widest block mb-1">
-            Streak
-          </span>
-          <p className="font-display font-extrabold text-2xl text-[#F5F7FA]">
-            {streak.currentStreak}d
-          </p>
-          <span className="text-[9px] text-[#94A3B8] font-medium mt-0.5 block">Active Habit</span>
-        </GlassCard>
+      {/* 2. Key Lifetime Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Surface variant="flat" className="p-4 flex flex-col items-center justify-center text-center">
+          <Flame className="w-5 h-5 text-accent-500 mb-1" />
+          <Stat label="Current Streak" value={`${streak.currentStreak} Days`} size="sm" />
+        </Surface>
 
-        <GlassCard className="p-3 text-center">
-          <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-widest block mb-1">
-            Sessions
-          </span>
-          <p className="font-display font-extrabold text-2xl text-[#F5F7FA]">
-            {streak.totalSessions}
-          </p>
-          <span className="text-[9px] text-[#94A3B8] font-medium mt-0.5 block">Total Logged</span>
-        </GlassCard>
+        <Surface variant="flat" className="p-4 flex flex-col items-center justify-center text-center">
+          <Clock className="w-5 h-5 text-primary-400 mb-1" />
+          <Stat label="Total Mat Time" value={`${streak.totalMinutes}m`} size="sm" />
+        </Surface>
+
+        <Surface variant="flat" className="p-4 flex flex-col items-center justify-center text-center">
+          <Award className="w-5 h-5 text-info-400 mb-1" />
+          <Stat label="Sessions Done" value={streak.totalSessions} size="sm" />
+        </Surface>
+
+        <Surface variant="flat" className="p-4 flex flex-col items-center justify-center text-center">
+          <TrendingUp className="w-5 h-5 text-success-400 mb-1" />
+          <Stat
+            label="Avg Accuracy"
+            value={
+              sessions.length > 0
+                ? `${Math.round(
+                    sessions.reduce(
+                      (acc, s) => acc + (s.accuracyPercent ?? s.averageScore ?? 0),
+                      0
+                    ) / sessions.length
+                  )}%`
+                : '--'
+            }
+            size="sm"
+          />
+        </Surface>
       </div>
 
-      {/* Recharts Score & Accuracy Trend Card */}
-      <GlassCard className="p-5 space-y-3">
+      {/* 3. 7-Day Activity Chart */}
+      <Surface variant="raised" className="p-6 space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+          Last 7 Days Activity (Minutes)
+        </h3>
+
+        <div className="h-44 flex items-end justify-between pt-6 px-2 gap-2">
+          {last7Days.map((day) => {
+            const heightPercent = Math.max(8, (day.minutes / maxDayMins) * 100);
+            return (
+              <div key={day.dateKey} className="flex-1 flex flex-col items-center h-full justify-end group">
+                <span className="text-[10px] text-text-muted tabular-nums mb-1 group-hover:text-primary-400 transition-colors">
+                  {day.minutes > 0 ? `${day.minutes}m` : ''}
+                </span>
+                <div
+                  className="w-full max-w-[36px] bg-primary-500/20 group-hover:bg-primary-500/40 rounded-t-lg transition-all duration-300 relative overflow-hidden"
+                  style={{ height: `${heightPercent}%` }}
+                >
+                  <div
+                    className="absolute inset-x-0 bottom-0 bg-primary-500 rounded-t-lg transition-all"
+                    style={{ height: day.minutes > 0 ? '100%' : '0%' }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-text-muted mt-2">
+                  {day.dayName}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </Surface>
+
+      {/* 4. Session History */}
+      <Surface variant="raised" className="p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[#34D399] stroke-[1.75px]" />
-            <h3 className="font-display font-bold text-base text-[#F5F7FA]">
-              Alignment vs Accuracy Trend
-            </h3>
-          </div>
-          <span className="text-[11px] font-semibold text-[#F59E0B]">Last 7 Sessions</span>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+            Recent Practice Sessions
+          </h3>
+          <span className="text-xs text-text-muted">{sessions.length} total</span>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-semibold px-1">
-          <div className="flex items-center gap-1.5 text-[#34D399]">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#34D399]" />
-            <span>Alignment (Score)</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[#F59E0B]">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
-            <span>Accuracy (% Time)</span>
-          </div>
-        </div>
+        {sessions.length === 0 ? (
+          <p className="text-xs text-text-muted text-center py-6">
+            No completed sessions yet. Start your first practice from Home or Library!
+          </p>
+        ) : (
+          <div className="space-y-2 max-h-80 overflow-y-auto pr-1 scrollbar-thin">
+            {sessions.slice(0, 10).map((s) => (
+              <div
+                key={s.id}
+                className="p-3 bg-surface-2/60 rounded-xl border border-surface-border flex items-center justify-between text-xs"
+              >
+                <div>
+                  <div className="font-semibold text-text-primary text-sm">
+                    {s.poseName}
+                  </div>
+                  <div className="text-text-muted">
+                    {s.dateString || s.timestamp.split('T')[0]} • {Math.round(s.durationSeconds / 60)} min
+                  </div>
+                </div>
 
-        <div className="h-44 w-full pt-2">
-          {chartData.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-xs text-[#64748B]">
-              No practice data yet to chart
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22C55E" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="date" stroke="#64748B" fontSize={10} tickLine={false} />
-                <YAxis domain={[0, 100]} stroke="#64748B" fontSize={10} tickLine={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#0F1620',
-                    borderColor: 'rgba(255,255,255,0.15)',
-                    borderRadius: '12px',
-                    color: '#F5F7FA',
-                    fontSize: '12px',
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="score"
-                  name="Alignment Score"
-                  stroke="#34D399"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#scoreGrad)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="accuracy"
-                  name="Time Accuracy %"
-                  stroke="#F59E0B"
-                  strokeWidth={2}
-                  strokeDasharray="4 4"
-                  fillOpacity={1}
-                  fill="url(#accGrad)"
-                  connectNulls
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </GlassCard>
-
-      {/* Session Minutes Bar Chart */}
-      <GlassCard className="p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#F59E0B] stroke-[1.75px]" />
-            <h3 className="font-display font-bold text-base text-[#F5F7FA]">
-              Practice Duration (Mins)
-            </h3>
+                <div className="flex items-center space-x-3">
+                  <div className="text-right">
+                    <div className="font-bold text-primary-400 tabular-nums">
+                      {s.averageScore}/100
+                    </div>
+                    <div className="text-[10px] text-text-muted">
+                      {s.accuracyPercent ?? s.averageScore}% Acc
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <span className="text-[11px] font-semibold text-[#94A3B8]">{streak.totalMinutes} total mins</span>
-        </div>
-
-        <div className="h-40 w-full pt-2">
-          {chartData.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-xs text-[#64748B]">
-              No practice data yet to chart
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <XAxis dataKey="date" stroke="#64748B" fontSize={10} tickLine={false} />
-                <YAxis stroke="#64748B" fontSize={10} tickLine={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#0F1620',
-                    borderColor: 'rgba(255,255,255,0.15)',
-                    borderRadius: '12px',
-                    color: '#F5F7FA',
-                    fontSize: '12px',
-                  }}
-                />
-                <Bar dataKey="duration" fill="#F59E0B" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </GlassCard>
+        )}
+      </Surface>
     </div>
   );
 };

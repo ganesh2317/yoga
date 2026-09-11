@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, User, ArrowRight } from 'lucide-react';
-import { GlassButton } from '../components/GlassButton';
-import { GlassCard } from '../components/GlassCard';
+import { useNavigate, Link } from 'react-router-dom';
+import { Lock, Mail, User } from 'lucide-react';
+import { Surface } from '../components/ui/Surface';
+import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 
 export const RegisterScreen: React.FC = () => {
@@ -55,119 +55,115 @@ export const RegisterScreen: React.FC = () => {
   const displayError = localError || storeError;
 
   return (
-    <div className="min-h-screen bg-[#0A0E14] flex flex-col justify-center px-4 max-w-md mx-auto relative z-10 py-10 space-y-6">
+    <div className="min-h-screen bg-background text-text-primary flex flex-col justify-center px-4 max-w-md mx-auto py-10 space-y-6">
       <div className="text-center space-y-3">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#22C55E] to-[#34D399] border border-[#34D399]/40 text-[#0A0E14] flex items-center justify-center font-display font-extrabold text-3xl mx-auto shadow-lg shadow-[#22C55E]/30">
-          Y
+        <div className="w-14 h-14 rounded-2xl bg-primary-500 text-background flex items-center justify-center font-display font-bold text-2xl mx-auto shadow-lg shadow-primary-500/25">
+          YS
         </div>
         <div>
-          <h1 className="font-display font-extrabold text-3xl text-[#F5F7FA]">
-            Create Account
+          <h1 className="font-display font-bold text-3xl text-text-primary">
+            Create Your Account
           </h1>
-          <p className="text-xs text-[#94A3B8] mt-1">
-            Start tracking your posture alignment in seconds
+          <p className="text-xs text-text-muted mt-1">
+            Begin your personalized yoga alignment journey
           </p>
         </div>
       </div>
 
-      <GlassCard variant="focal" glowColor="emerald" className="p-6 space-y-5">
+      <Surface variant="raised" className="p-6 space-y-5">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
               Full Name
             </label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <User className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Aria Patel"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/5 border border-white/12 text-[#F5F7FA] placeholder:text-[#64748B] text-sm focus:outline-none focus:border-[#22C55E]"
+                placeholder="Patanjali"
+                className="w-full bg-surface-2 border border-surface-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary-500 transition-colors"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <Mail className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="aria@yogasense.ai"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/5 border border-white/12 text-[#F5F7FA] placeholder:text-[#64748B] text-sm focus:outline-none focus:border-[#22C55E]"
+                placeholder="yogi@example.com"
+                className="w-full bg-surface-2 border border-surface-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary-500 transition-colors"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <Lock className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/5 border border-white/12 text-[#F5F7FA] placeholder:text-[#64748B] text-sm focus:outline-none focus:border-[#22C55E]"
+                className="w-full bg-surface-2 border border-surface-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary-500 transition-colors"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-[#94A3B8] uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
               Confirm Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <Lock className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/5 border border-white/12 text-[#F5F7FA] placeholder:text-[#64748B] text-sm focus:outline-none focus:border-[#22C55E]"
+                className="w-full bg-surface-2 border border-surface-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary-500 transition-colors"
               />
             </div>
           </div>
 
           {displayError && (
-            <p className="text-xs text-[#EF4444] font-medium text-center bg-[#EF4444]/10 py-2 rounded-xl border border-[#EF4444]/20">
+            <div className="text-xs text-danger-500 bg-danger-500/10 p-2.5 rounded-lg border border-danger-500/20">
               {displayError}
-            </p>
+            </div>
           )}
 
-          <GlassButton
+          <Button
             type="submit"
             variant="primary"
             size="lg"
-            fullWidth
-            isLoading={loading}
-            rightIcon={<ArrowRight className="w-5 h-5" />}
+            className="w-full shadow-lg shadow-primary-500/20"
+            disabled={loading}
           >
-            Create Free Account
-          </GlassButton>
+            {loading ? 'Creating Account...' : 'Get Started'}
+          </Button>
         </form>
-      </GlassCard>
+      </Surface>
 
-      <p className="text-center text-xs text-[#94A3B8]">
+      <div className="text-center text-xs text-text-muted">
         Already have an account?{' '}
-        <button
-          onClick={() => navigate('/login')}
-          className="text-[#34D399] font-bold hover:underline"
-        >
-          Sign in instead
-        </button>
-      </p>
+        <Link to="/login" className="font-semibold text-primary-400 hover:underline">
+          Sign In
+        </Link>
+      </div>
     </div>
   );
 };

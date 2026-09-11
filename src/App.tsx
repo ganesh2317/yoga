@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { BackgroundBlobs } from './components/BackgroundBlobs';
 import { BottomNav } from './components/BottomNav';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { TrackingErrorBoundary } from './components/TrackingErrorBoundary';
@@ -8,6 +7,7 @@ import { LoginScreen } from './screens/LoginScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { LibraryScreen } from './screens/LibraryScreen';
+import { JourneyScreen } from './screens/JourneyScreen';
 import { FreeTrackScreen } from './screens/FreeTrackScreen';
 import { LiveDetectScreen } from './screens/LiveDetectScreen';
 import { ScoreScreen } from './screens/ScoreScreen';
@@ -17,6 +17,7 @@ import { ProgressScreen } from './screens/ProgressScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
 import { FlowListScreen } from './screens/FlowListScreen';
 import { FlowSessionScreen } from './screens/FlowSessionScreen';
+import { initTheme } from './lib/theme';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
@@ -24,22 +25,25 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     ['/login', '/register'].includes(location.pathname) ||
     location.pathname === '/live' ||
     location.pathname.startsWith('/live/') ||
-    location.pathname.startsWith('/flow/');
+    location.pathname.startsWith('/flow/') ||
+    location.pathname === '/free-track';
 
   return (
     <>
-      <main>{children}</main>
+      <main className="w-full">{children}</main>
       {!hideBottomNav && <BottomNav />}
     </>
   );
 };
 
 export function App() {
+  useEffect(() => {
+    initTheme();
+  }, []);
+
   return (
     <BrowserRouter>
-      <div className="relative min-h-screen font-sans bg-bg-darkest text-text-primary overflow-x-hidden">
-        <BackgroundBlobs />
-
+      <div className="min-h-screen bg-background text-text-primary">
         <MainLayout>
           <Routes>
             <Route path="/login" element={<LoginScreen />} />
@@ -64,7 +68,16 @@ export function App() {
             />
 
             <Route
-              path="/live"
+              path="/journey"
+              element={
+                <ProtectedRoute>
+                  <JourneyScreen />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/free-track"
               element={
                 <ProtectedRoute>
                   <TrackingErrorBoundary>
@@ -86,6 +99,15 @@ export function App() {
             />
 
             <Route
+              path="/score"
+              element={
+                <ProtectedRoute>
+                  <ScoreScreen />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/score/:sessionId"
               element={
                 <ProtectedRoute>
@@ -99,6 +121,26 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <FeedbackScreen />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/flows"
+              element={
+                <ProtectedRoute>
+                  <FlowListScreen />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/flow/:flowId"
+              element={
+                <ProtectedRoute>
+                  <TrackingErrorBoundary>
+                    <FlowSessionScreen />
+                  </TrackingErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -130,26 +172,6 @@ export function App() {
               }
             />
 
-            <Route
-              path="/flows"
-              element={
-                <ProtectedRoute>
-                  <FlowListScreen />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/flow/:flowId"
-              element={
-                <ProtectedRoute>
-                  <TrackingErrorBoundary>
-                    <FlowSessionScreen />
-                  </TrackingErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
         </MainLayout>
@@ -157,5 +179,4 @@ export function App() {
     </BrowserRouter>
   );
 }
-
 export default App;

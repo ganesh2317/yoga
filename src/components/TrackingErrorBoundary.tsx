@@ -1,7 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { CameraOff, RefreshCw } from 'lucide-react';
-import { GlassButton } from './GlassButton';
-import { GlassCard } from './GlassCard';
+import { Surface } from './ui/Surface';
+import { Button } from './ui/Button';
 
 interface Props {
   children: ReactNode;
@@ -34,31 +34,31 @@ export class TrackingErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#0A0E14] flex items-center justify-center p-4 max-w-md mx-auto z-50">
-          <GlassCard variant="focal" glowColor="red" className="p-6 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#EF4444]/20 border border-[#EF4444]/40 flex items-center justify-center text-[#EF4444] mx-auto">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 max-w-md mx-auto z-50">
+          <Surface variant="raised" className="p-6 text-center space-y-4 border-poor/40">
+            <div className="w-14 h-14 rounded-2xl bg-poor-soft border border-poor flex items-center justify-center text-poor mx-auto">
               <CameraOff className="w-7 h-7" />
             </div>
 
             <div className="space-y-1">
-              <h3 className="font-display font-extrabold text-xl text-[#F5F7FA]">
+              <h3 className="font-display font-bold text-xl text-text">
                 Tracking Engine Reset Required
               </h3>
-              <p className="text-xs text-[#94A3B8] leading-relaxed">
+              <p className="text-xs text-text-3 leading-relaxed">
                 The camera or vision engine encountered a transient graphics interrupt.
               </p>
             </div>
 
-            <GlassButton
+            <Button
               onClick={this.handleReset}
               variant="primary"
-              size="md"
-              fullWidth
-              leftIcon={<RefreshCw className="w-4 h-4" />}
+              size="lg"
+              className="w-full"
             >
+              <RefreshCw className="w-4 h-4 mr-2" />
               Restart Camera Tracking
-            </GlassButton>
-          </GlassCard>
+            </Button>
+          </Surface>
         </div>
       );
     }
