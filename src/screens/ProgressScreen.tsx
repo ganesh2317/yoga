@@ -123,7 +123,7 @@ export const ProgressScreen: React.FC = () => {
               sessions.length > 0
                 ? `${Math.round(
                     sessions.reduce(
-                      (acc, s) => acc + (s.accuracyPercent ?? s.averageScore ?? 0),
+                      (acc, s) => acc + (s.accuracyPercent || s.averageScore || 0),
                       0
                     ) / sessions.length
                   )}%`
@@ -145,19 +145,19 @@ export const ProgressScreen: React.FC = () => {
             const heightPercent = Math.max(8, (day.minutes / maxDayMins) * 100);
             return (
               <div key={day.dateKey} className="flex-1 flex flex-col items-center h-full justify-end group">
-                <span className="text-[10px] text-text-muted tabular-nums mb-1 group-hover:text-primary-400 transition-colors">
+                <span className="text-[10px] text-text-3 tabular-nums mb-1 group-hover:text-accent transition-colors">
                   {day.minutes > 0 ? `${day.minutes}m` : ''}
                 </span>
                 <div
-                  className="w-full max-w-[36px] bg-primary-500/20 group-hover:bg-primary-500/40 rounded-t-lg transition-all duration-300 relative overflow-hidden"
+                  className="w-full max-w-[36px] bg-accent/20 group-hover:bg-accent/40 rounded-t-lg transition-all duration-300 relative overflow-hidden"
                   style={{ height: `${heightPercent}%` }}
                 >
                   <div
-                    className="absolute inset-x-0 bottom-0 bg-primary-500 rounded-t-lg transition-all"
+                    className="absolute inset-x-0 bottom-0 bg-accent rounded-t-lg transition-all"
                     style={{ height: day.minutes > 0 ? '100%' : '0%' }}
                   />
                 </div>
-                <span className="text-xs font-medium text-text-muted mt-2">
+                <span className="text-xs font-medium text-text-2 mt-2">
                   {day.dayName}
                 </span>
               </div>
@@ -197,11 +197,11 @@ export const ProgressScreen: React.FC = () => {
 
                 <div className="flex items-center space-x-3">
                   <div className="text-right">
-                    <div className="font-bold text-primary-400 tabular-nums">
+                    <div className="font-bold text-accent tabular-nums">
                       {s.averageScore}/100
                     </div>
-                    <div className="text-[10px] text-text-muted">
-                      {s.accuracyPercent ?? s.averageScore}% Acc
+                    <div className="text-[10px] text-text-3">
+                      {(s.accuracyPercent || s.averageScore) ?? 0}% Acc
                     </div>
                   </div>
                 </div>
