@@ -6,12 +6,17 @@ import {
   Laptop,
   LogOut,
   Cpu,
+  Smartphone,
+  Download,
+  CheckCircle2,
+  Share,
 } from 'lucide-react';
 import { Surface } from '../components/ui/Surface';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { TopBar } from '../components/TopBar';
 import { useAuthStore } from '../store/useAuthStore';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 import { getTheme, setTheme, type Theme } from '../lib/theme';
 import { getActiveModelTier } from '../lib/mediaPipeLoader';
 import { saveUser, getUserSettings, saveUserSettings } from '../services/db';
@@ -24,6 +29,8 @@ export const ProfileScreen: React.FC = () => {
   const [dailyGoal, setDailyGoal] = useState<number>(user?.dailyGoalMinutes || 20);
   const [audioFeedback, setAudioFeedback] = useState<boolean>(true);
   const [modelTier] = useState<string>(getActiveModelTier() || 'mid');
+
+  const { canPrompt, canShowIOSPrompt, isInstalled, promptInstall } = usePWAInstall();
 
   useEffect(() => {
     if (user) {
@@ -164,6 +171,67 @@ export const ProfileScreen: React.FC = () => {
           <span>5 min</span>
           <span>20 min</span>
           <span>60 min</span>
+        </div>
+      </Surface>
+
+      {/* App Installation & Offline Capabilities */}
+      <Surface variant="raised" className="p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Smartphone className="w-5 h-5 text-accent" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+              App & Installation
+            </h3>
+          </div>
+          {isInstalled ? (
+            <Badge variant="accent" size="sm">
+              <CheckCircle2 className="w-3 h-3 mr-1" /> Installed
+            </Badge>
+          ) : (
+            <Badge variant="default" size="sm">
+              Browser Web App
+            </Badge>
+          )}
+        </div>
+
+        <div className="space-y-3 text-xs">
+          <div className="flex items-center justify-between py-1 border-b border-surface-border">
+            <span className="text-text-secondary">App Shell & Library</span>
+            <span className="font-semibold text-good">Offline Cached</span>
+          </div>
+
+          <div className="flex items-center justify-between py-1 border-b border-surface-border">
+            <span className="text-text-secondary">Install Status</span>
+            <span className="font-semibold text-text-primary">
+              {isInstalled ? 'Standalone Mode' : 'Ready to Install'}
+            </span>
+          </div>
+
+          {!isInstalled && canPrompt && (
+            <div className="pt-2">
+              <Button
+                variant="primary"
+                size="sm"
+                className="w-full flex items-center justify-center gap-2"
+                onClick={promptInstall}
+              >
+                <Download className="w-4 h-4" />
+                <span>Install YogaSense App</span>
+              </Button>
+            </div>
+          )}
+
+          {!isInstalled && canShowIOSPrompt && (
+            <div className="pt-1 flex items-start gap-2 bg-surface-2 p-3 rounded-xl border border-surface-border text-text-2">
+              <Share className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+              <div>
+                <div className="font-semibold text-text-primary">Install on iOS Safari</div>
+                <div className="text-[11px] mt-0.5">
+                  Tap the <span className="font-medium text-text-primary">Share</span> button in Safari's toolbar, then scroll down and tap <span className="font-medium text-text-primary">'Add to Home Screen'</span>.
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Surface>
 

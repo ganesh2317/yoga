@@ -15,6 +15,7 @@ import { Badge } from '../components/ui/Badge';
 import { Ring } from '../components/ui/Ring';
 import { Stat } from '../components/ui/Stat';
 import { TopBar } from '../components/TopBar';
+import { PWAInstallBanner } from '../components/pwa/PWAInstallBanner';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSessionStore } from '../store/useSessionStore';
 import { useJourneyStore } from '../store/useJourneyStore';
@@ -73,6 +74,9 @@ export const HomeScreen: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-text-primary p-4 md:p-8 max-w-5xl mx-auto space-y-6 pb-28">
       <TopBar />
+
+      {/* PWA In-App Install Prompt */}
+      <PWAInstallBanner />
 
       {/* Greeting Header & Streak Pill */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">

@@ -5,6 +5,7 @@ import { BottomNav } from './components/BottomNav';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { TrackingErrorBoundary } from './components/TrackingErrorBoundary';
 import { ToastContainer } from './components/ui/Toast';
+import { PWAReloadPrompt } from './components/pwa/PWAReloadPrompt';
 import { LoginScreen } from './screens/LoginScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -248,6 +249,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <>
       <ToastContainer />
+      <PWAReloadPrompt />
       <main className="w-full min-h-screen flex flex-col overflow-x-hidden">{children}</main>
       {!hideBottomNav && <BottomNav />}
     </>
