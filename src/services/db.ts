@@ -66,8 +66,11 @@ export function getLatestDBState(): DBState {
   return currentDBState;
 }
 
+const isDev = Boolean(import.meta.env?.DEV);
+
 function updateDBState(partial: Partial<DBState>) {
   currentDBState = { ...currentDBState, ...partial };
+  if (isDev) console.log('[DB:StateChange]', currentDBState);
   dbListeners.forEach((l) => {
     try {
       l(currentDBState);
@@ -89,11 +92,12 @@ if (typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined') {
     syncChannel = new BroadcastChannel(DB_CHANNEL_NAME);
     syncChannel.onmessage = (event) => {
       const data = event.data;
+      if (isDev) console.log('[DB:BroadcastChannel:Received]', data);
       if (data?.type === 'REQUEST_CLOSE_FOR_UPGRADE') {
-        console.log(`[DB Sync] Received close request from another tab upgrading to v${data.targetVersion}`);
+        if (isDev) console.log(`[DB Sync] Received close request from another tab upgrading to v${data.targetVersion}`);
         closeDB();
       } else if (data?.type === 'UPGRADE_COMPLETE') {
-        console.log(`[DB Sync] Database upgrade to v${data.version} completed in another tab`);
+        if (isDev) console.log(`[DB Sync] Database upgrade to v${data.version} completed in another tab`);
         closeDB();
       }
     };
@@ -103,12 +107,14 @@ if (typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined') {
 }
 
 function broadcastUpgradeRequest(targetVersion: number) {
+  if (isDev) console.log('[DB:BroadcastChannel:Send] REQUEST_CLOSE_FOR_UPGRADE', targetVersion);
   try {
     syncChannel?.postMessage({ type: 'REQUEST_CLOSE_FOR_UPGRADE', targetVersion });
   } catch (_) {}
 }
 
 function broadcastUpgradeComplete(version: number) {
+  if (isDev) console.log('[DB:BroadcastChannel:Send] UPGRADE_COMPLETE', version);
   try {
     syncChannel?.postMessage({ type: 'UPGRADE_COMPLETE', version });
   } catch (_) {}
@@ -118,6 +124,7 @@ let cachedDB: IDBPDatabase<YogaSenseDB> | null = null;
 let inFlightOpenPromise: Promise<IDBPDatabase<YogaSenseDB>> | null = null;
 
 export function closeDB(): void {
+  if (isDev) console.log('[DB:closeDB] Closing cachedDB connection and clearing inFlightOpenPromise');
   if (cachedDB) {
     try {
       cachedDB.close();
@@ -127,20 +134,45 @@ export function closeDB(): void {
   inFlightOpenPromise = null;
 }
 
+export async function resetDatabase(): Promise<void> {
+  if (isDev) console.log('[DB:resetDatabase] Initiating complete database deletion and reset...');
+  closeDB();
+  if (typeof indexedDB !== 'undefined') {
+    return new Promise<void>((resolve, reject) => {
+      const req = indexedDB.deleteDatabase(DB_NAME);
+      req.onsuccess = () => {
+        if (isDev) console.log('[DB:resetDatabase] Database successfully deleted:', DB_NAME);
+        resolve();
+      };
+      req.onerror = () => {
+        console.error('[DB:resetDatabase] Error deleting database:', req.error);
+        reject(req.error);
+      };
+      req.onblocked = () => {
+        console.warn('[DB:resetDatabase] deleteDatabase blocked by connection. Proceeding.');
+        resolve();
+      };
+    });
+  }
+}
+
 async function openWithAutoRetry(retriesRemaining = 3, delayMs = 200): Promise<IDBPDatabase<YogaSenseDB>> {
   let timer: any = null;
+  if (isDev) console.log(`[DB:openWithAutoRetry] Opening "${DB_NAME}" at v${DB_VERSION} (retries left: ${retriesRemaining})`);
 
   const openPromise = openDB<YogaSenseDB>(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion) {
-      console.log(`[IndexedDB] Upgrading schema from v${oldVersion} to v${DB_VERSION}`);
+    upgrade(db, oldVersion, newVersion, _transaction) {
+      if (isDev) console.log(`[DB:upgrade:START] Upgrading schema from v${oldVersion} to v${newVersion ?? DB_VERSION}. Existing stores:`, Array.from(db.objectStoreNames));
       // Users store
       if (!db.objectStoreNames.contains('users')) {
+        if (isDev) console.log('[DB:upgrade] Creating "users" store');
         const userStore = db.createObjectStore('users', { keyPath: 'id' });
         userStore.createIndex('by-email', 'email', { unique: true });
       }
 
       // Sessions store
       if (!db.objectStoreNames.contains('sessions')) {
+        if (isDev) console.log('[DB:upgrade] Creating "sessions" store');
         const sessionStore = db.createObjectStore('sessions', { keyPath: 'id' });
         sessionStore.createIndex('by-user', 'userId');
         sessionStore.createIndex('by-date', 'dateString');
@@ -148,19 +180,22 @@ async function openWithAutoRetry(retriesRemaining = 3, delayMs = 200): Promise<I
 
       // User settings store
       if (!db.objectStoreNames.contains('user_settings')) {
+        if (isDev) console.log('[DB:upgrade] Creating "user_settings" store');
         db.createObjectStore('user_settings', { keyPath: 'userId' });
       }
 
       // v2 Migration: Journey store
       if (oldVersion < 2 || !db.objectStoreNames.contains('journey')) {
         if (!db.objectStoreNames.contains('journey')) {
+          if (isDev) console.log('[DB:upgrade] Creating "journey" store');
           db.createObjectStore('journey', { keyPath: 'userId' });
         }
       }
+      if (isDev) console.log('[DB:upgrade:END] Schema upgrade completed successfully.');
     },
     blocked(currentVersion, blockedVersion, _event) {
       console.warn(
-        `[IndexedDB] Upgrade to v${blockedVersion ?? DB_VERSION} blocked by open connection at v${currentVersion}. Requesting other tabs to close.`
+        `[DB:blocked] Upgrade to v${blockedVersion ?? DB_VERSION} blocked by open connection at v${currentVersion}. Requesting other tabs to close.`
       );
       broadcastUpgradeRequest(blockedVersion ?? DB_VERSION);
       if (retriesRemaining <= 1) {
@@ -173,7 +208,7 @@ async function openWithAutoRetry(retriesRemaining = 3, delayMs = 200): Promise<I
     },
     blocking(currentVersion, blockedVersion, _event) {
       console.warn(
-        `[IndexedDB] This connection (v${currentVersion}) is blocking a newer version (v${blockedVersion}). Closing proactively.`
+        `[DB:blocking] This connection (v${currentVersion}) is blocking a newer version (v${blockedVersion}). Closing proactively.`
       );
       closeDB();
       updateDBState({
@@ -183,13 +218,14 @@ async function openWithAutoRetry(retriesRemaining = 3, delayMs = 200): Promise<I
       });
     },
     terminated() {
-      console.warn('[IndexedDB] Connection terminated unexpectedly by the browser.');
+      console.warn('[DB:terminated] Connection terminated unexpectedly by the browser.');
       closeDB();
     },
   });
 
   const timeoutPromise = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
+      console.error(`[DB:timeout] openDB failed to settle within ${DB_OPEN_TIMEOUT_MS}ms`);
       reject(new Error('DB open timeout'));
     }, DB_OPEN_TIMEOUT_MS);
   });
@@ -198,11 +234,12 @@ async function openWithAutoRetry(retriesRemaining = 3, delayMs = 200): Promise<I
     const db = await Promise.race([openPromise, timeoutPromise]);
     clearTimeout(timer);
     cachedDB = db;
+    if (isDev) console.log(`[DB:success] Database connection established successfully at v${db.version}. Stores:`, Array.from(db.objectStoreNames));
     updateDBState({ isBlocked: false, message: null });
     broadcastUpgradeComplete(DB_VERSION);
 
     db.onversionchange = () => {
-      console.warn('[IndexedDB] db.onversionchange triggered: closing connection proactively.');
+      console.warn('[DB:onversionchange] Triggered on open connection: closing proactively.');
       closeDB();
       updateDBState({
         isBlocked: false,
@@ -214,11 +251,12 @@ async function openWithAutoRetry(retriesRemaining = 3, delayMs = 200): Promise<I
     return db;
   } catch (err: any) {
     clearTimeout(timer);
+    console.error('[DB:error] openWithAutoRetry error:', err);
     closeDB();
 
     // If blocked or timed out and retries remain, request tabs to close, wait and retry automatically
     if (retriesRemaining > 0) {
-      console.log(`[IndexedDB] Retrying connection attempt (${retriesRemaining} retries left)...`);
+      if (isDev) console.log(`[DB:retry] Retrying connection attempt in ${delayMs}ms (${retriesRemaining} retries left)...`);
       broadcastUpgradeRequest(DB_VERSION);
       await new Promise((res) => setTimeout(res, delayMs));
       return openWithAutoRetry(retriesRemaining - 1, delayMs * 1.5);

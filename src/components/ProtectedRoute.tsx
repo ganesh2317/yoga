@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AlertTriangle, RefreshCw, LogOut, Layers } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSessionStore } from '../store/useSessionStore';
+import { resetDatabase } from '../services/db';
 import { Surface } from './ui/Surface';
 import { Button } from './ui/Button';
 
@@ -109,6 +110,20 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             >
               <LogOut className="w-3.5 h-3.5 mr-1.5" /> Continue to Login
             </Button>
+
+            <button
+              type="button"
+              className="text-xs text-text-3 hover:text-poor underline pt-2 block w-full text-center cursor-pointer"
+              onClick={async () => {
+                if (window.confirm('Reset local storage for YogaSense AI? This will clear local practice cache and recreate a fresh database.')) {
+                  await resetDatabase();
+                  await logout();
+                  window.location.reload();
+                }
+              }}
+            >
+              Reset Local Database & Reload
+            </button>
           </div>
         </Surface>
       </div>
