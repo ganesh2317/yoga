@@ -80,9 +80,11 @@ export const Ring: React.FC<RingProps> = ({
           className="transition-all duration-enter ease-smooth"
         />
       </svg>
-      {children && (
+      {(children || label) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {children}
+          {children ?? (
+            <span className="text-xs font-bold tabular-nums text-text-primary">{label}</span>
+          )}
         </div>
       )}
     </div>
