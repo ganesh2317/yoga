@@ -91,11 +91,11 @@ export const HistoryScreen: React.FC = () => {
 
               <div className="flex items-center space-x-4">
                 <div className="text-right">
-                  <div className="text-base font-bold text-primary-400 tabular-nums">
+                  <div className="text-base font-bold text-accent tabular-nums">
                     {s.averageScore}/100
                   </div>
-                  <div className="text-[11px] text-text-muted">
-                    {s.accuracyPercent ?? s.averageScore}% Accuracy
+                  <div className="text-[11px] text-text-3">
+                    {(s.accuracyPercent || s.averageScore) ?? 0}% Accuracy
                   </div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-text-muted" />
